@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>DUO Academia — Termo de Autorização de Cartão de Crédito</title>
-  <meta name="description" content="Formulário para autorização de uso de cartão de crédito." />
+  <title>DUO Academia — Termo de Autorização p/ Terceiros</title>
+  <meta name="description" content="Formulário para autorização de uso de cartão por terceiros, com termo e assinatura por touch (gera PDF)." />
   <style>
     :root{
       --bg:#0f172a; --panel:#111827; --muted:#94a3b8; --fg:#e5e7eb; --line:#1f2937; --brand:#3b82f6; --ok:#22c55e; --warn:#f59e0b; --danger:#ef4444;
@@ -44,7 +44,6 @@
     .muted{color:var(--muted)}
     .hr{height:1px;background:#1f2937;border:0;margin:12px 0}
     footer{margin-top:20px;font-size:12px;color:var(--muted);text-align:center}
-    /* Printable area */
     .sheet{background:white;color:#111; width:794px; min-height:1123px; padding:28mm 20mm; border:1px solid #ddd; border-radius:6px; box-shadow:0 4px 30px rgba(0,0,0,.15);
       word-spacing: .06em; letter-spacing: .01em; text-rendering: optimizeLegibility; -webkit-font-smoothing: antialiased; font-kerning: normal; hyphens: none; word-break: normal; overflow-wrap: anywhere;
     }
@@ -61,6 +60,8 @@
     .sheet .sign-img{max-width:100%; height:auto; max-height:130px; width:auto; border:1px solid #ccc;border-radius:4px;object-fit:contain; display:block; margin:0 auto}
     .sheet .line{height:1px;background:#ccc;margin:6px 0}
     .sheet .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace}
+    .sheet .brand{display:flex; align-items:center; gap:10px}
+    .sheet .brand img.logo{height:38px; width:auto; display:block}
   </style>
 </head>
 <body>
@@ -68,9 +69,9 @@
     <header>
       <div>
         <h1>DUO Academia · Autorização para uso de cartão por terceiros</h1>
-        <div class="badge">Preencha, aceite o termo e assine/faça uma rúbrica com o dedo no espaço em branco. Depois clique em Gerar PDF e encaminhe no WhatsApp.</div>
+        <div class="badge">Preencha, aceite o termo e assine com o dedo (ou mouse). Depois gere o PDF.</div>
       </div>
-      <div class="badge">v1.4</div>
+      <div class="badge">v1.5</div>
     </header>
 
     <div class="grid">
@@ -109,7 +110,7 @@
           </div>
         </div>
 
-        <h2 style="margin-top:18px">3) Dados do contratante que usará o cartão</h2>
+        <h2 style="margin-top:18px">3) Dados do contratante (terceiro que usará o cartão)</h2>
         <div class="row">
           <div>
             <label for="contratante_nome">Nome completo</label>
@@ -124,7 +125,7 @@
         <h2 style="margin-top:18px">4) Termo de liberação</h2>
         <div class="terms" id="termoTexto" aria-readonly="true">
           <strong>DUO ACADEMIA</strong><br>
-          Av. Simoa Gomes, 726 – Heliópolis · Rua Dom José, 187 – Santo Antônio<br>
+          Av. Simoa Gomes, 726 – Heliópolis · R. Dom José, 187 – Santo Antônio<br>
           (87) 9 9666-0021 | (87) 9 9934-1230 · coordenacaoduoacademia@gmail.com<br>
           <div class="hr"></div>
           <div class="title-tight" style="text-align:center;font-weight:700;margin:6px 0 12px">TERMO DE AUTORIZAÇÃO PARA USO DE CARTÃO DE CRÉDITO/DÉBITO POR TERCEIROS</div>
@@ -185,10 +186,13 @@
         <div class="help">A prévia atualiza automaticamente conforme você preenche.</div>
         <div id="printArea" class="sheet" aria-label="Área imprimível">
           <div style="display:flex;justify-content:space-between;align-items:flex-start">
-            <div>
-              <h3>DUO ACADEMIA</h3>
-              <small>Av. Simoa Gomes, 726 – Heliópolis · R. Dom José, 187 – Santo Antônio<br>
-              (87) 9 9666-0021 | (87) 9 9934-1230 · coordenacaoduoacademia@gmail.com</small>
+            <div class="brand">
+              <img id="sheet_logo" class="logo" alt="Logo DUO" crossorigin="anonymous" />
+              <div>
+                <h3>DUO ACADEMIA</h3>
+                <small>Av. Simoa Gomes, 726 – Heliópolis · R. Dom José, 187 – Santo Antônio<br>
+                (87) 9 9666-0021 | (87) 9 9934-1230 · coordenacaoduoacademia@gmail.com</small>
+              </div>
             </div>
             <div style="text-align:right">
               <div style="font-size:12px;color:#444">Código: <span id="doc_id"></span></div>
@@ -252,10 +256,17 @@
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 
   <script>
-    // JS baseado no v1.3; adição: validação de igualdade de titular/contratante
     const $ = (sel) => document.querySelector(sel);
     const docId = () => new Date().toISOString().replace(/[-:TZ.]/g, '').slice(0, 14);
     const onlyDigits = (v) => (v||'').replace(/\\D+/g,'');
+
+    const DEFAULT_LOGO = 'logo.png';
+    const urlParamLogo = new URLSearchParams(location.search).get('logo');
+    const logoSrc = urlParamLogo || DEFAULT_LOGO;
+    (function setLogo(){
+      const img = document.getElementById('sheet_logo');
+      if (img){ img.src = logoSrc; img.setAttribute('crossorigin','anonymous'); }
+    })();
 
     const maskCPF = (v) => {
       v = onlyDigits(v).slice(0,11);
@@ -303,12 +314,10 @@
       return `${d}/${m}/${y}`;
     };
 
-    // Live masks
     $('#titular_cpf').addEventListener('input', (e)=> e.target.value = maskCPF(e.target.value));
     $('#contratante_cpf').addEventListener('input', (e)=> e.target.value = maskCPF(e.target.value));
     $('#ultimos4').addEventListener('input', (e)=> e.target.value = onlyDigits(e.target.value).slice(0,4));
 
-    // Signature Pad
     const canvas = document.getElementById('signaturePad');
     function resizeCanvasForHiDPI(){
       const ratio = Math.max(window.devicePixelRatio || 1, 1);
@@ -336,40 +345,39 @@
       signaturePad.clear();
       signaturePad.fromData(data);
     });
-    $('#btnLimpar').addEventListener('click', (e)=>{ e.preventDefault(); signaturePad.clear(); renderPreview(); });
+    document.getElementById('btnLimpar').addEventListener('click', (e)=>{ e.preventDefault(); signaturePad.clear(); renderPreview(); });
 
     function getValues(){
       return {
-        titular_nome: $('#titular_nome').value.trim(),
-        titular_cpf: $('#titular_cpf').value.trim(),
-        ultimos4: onlyDigits($('#ultimos4').value).slice(0,4),
-        bandeira: $('#bandeira').value.trim(),
-        contratante_nome: $('#contratante_nome').value.trim(),
-        contratante_cpf: $('#contratante_cpf').value.trim(),
-        aceite: $('#aceite').checked,
-        data: $('#data_assinatura').value
+        titular_nome: document.getElementById('titular_nome').value.trim(),
+        titular_cpf: document.getElementById('titular_cpf').value.trim(),
+        ultimos4: onlyDigits(document.getElementById('ultimos4').value).slice(0,4),
+        bandeira: document.getElementById('bandeira').value.trim(),
+        contratante_nome: document.getElementById('contratante_nome').value.trim(),
+        contratante_cpf: document.getElementById('contratante_cpf').value.trim(),
+        aceite: document.getElementById('aceite').checked,
+        data: document.getElementById('data_assinatura').value
       };
     }
 
     function renderPreview(){
       const v = getValues();
-      $('#doc_data').textContent = formatDateBR(v.data);
-      $('#pv_titular_nome').textContent = v.titular_nome;
-      $('#pv_titular_cpf').textContent = v.titular_cpf;
-      $('#pv_u4').textContent = v.ultimos4;
-      $('#pv_bandeira').textContent = v.bandeira || '—';
-      $('#pv_contratante_nome').textContent = v.contratante_nome;
-      $('#pv_contratante_cpf').textContent = v.contratante_cpf;
-      $('#tt_pre_titular').textContent = v.titular_nome || '____________________________';
-      $('#tt_pre_cpf_titular').textContent = v.titular_cpf || '___.___.___-__';
-      $('#tt_pre_u4').textContent = v.ultimos4 || '____';
-      $('#tt_pre_contratante').textContent = v.contratante_nome || '____________________________';
-      $('#tt_pre_cpf_contratante').textContent = v.contratante_cpf || '___.___.___-__';
+      document.getElementById('doc_data').textContent = formatDateBR(v.data);
+      document.getElementById('pv_titular_nome').textContent = v.titular_nome;
+      document.getElementById('pv_titular_cpf').textContent = v.titular_cpf;
+      document.getElementById('pv_u4').textContent = v.ultimos4;
+      document.getElementById('pv_bandeira').textContent = v.bandeira || '—';
+      document.getElementById('pv_contratante_nome').textContent = v.contratante_nome;
+      document.getElementById('pv_contratante_cpf').textContent = v.contratante_cpf;
+      document.getElementById('tt_pre_titular').textContent = v.titular_nome || '____________________________';
+      document.getElementById('tt_pre_cpf_titular').textContent = v.titular_cpf || '___.___.___-__';
+      document.getElementById('tt_pre_u4').textContent = v.ultimos4 || '____';
+      document.getElementById('tt_pre_contratante').textContent = v.contratante_nome || '____________________________';
+      document.getElementById('tt_pre_cpf_contratante').textContent = v.contratante_cpf || '___.___.___-__';
       const dataUrl = signaturePad.isEmpty() ? '' : signaturePad.toDataURL('image/png');
-      $('#pv_assinatura').src = dataUrl;
+      document.getElementById('pv_assinatura').src = dataUrl;
     }
 
-    // Normaliza nome para comparação (sem acento e sem múltiplos espaços)
     function normalizeName(s){
       return (s||'').normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').replace(/\\s+/g,' ').trim().toUpperCase();
     }
@@ -381,14 +389,13 @@
       if (!isValidCPF(v.titular_cpf)) return 'CPF do TITULAR inválido.';
       if (!isValidCPF(v.contratante_cpf)) return 'CPF do CONTRATANTE inválido.';
 
-      // NOVO: impedir titular == contratante por nome ou CPF
       const sameCPF = onlyDigits(v.titular_cpf) === onlyDigits(v.contratante_cpf);
       const sameName = normalizeName(v.titular_nome) === normalizeName(v.contratante_nome);
       if (sameCPF || sameName){
         let detalhes = [];
         if (sameCPF) detalhes.push('CPF do TITULAR e do CONTRATANTE são iguais.');
         if (sameName) detalhes.push('Nome do TITULAR e do CONTRATANTE são iguais.');
-        return 'Os dados do TITULAR e do CONTRATANTE devem ser de pessoas diferentes.\\n' + detalhes.join(' ');
+        return 'Os dados do TITULAR e do CONTRATANTE devem ser de pessoas diferentes.\n' + detalhes.join(' ');
       }
 
       if (!v.ultimos4 || v.ultimos4.length !== 4) return 'Informe os 4 últimos dígitos do cartão.';
@@ -401,7 +408,7 @@
       const v = getValues();
       const err = validateForPDF(v);
       if (err){ alert(err); return; }
-      $('#doc_id').textContent = docId();
+      document.getElementById('doc_id').textContent = docId();
       renderPreview();
       const area = document.getElementById('printArea');
       const canvasImg = await html2canvas(area, { scale: 2, useCORS: true });
@@ -412,7 +419,7 @@
       const imgProps = { w: pageWidth - 20, h: (canvasImg.height * (pageWidth - 20)) / canvasImg.width };
       const x = 10, y = 10;
       pdf.addImage(imgData, 'PNG', x, y, imgProps.w, imgProps.h, undefined, 'FAST');
-      const filename = `DUO_Autorizacao_Terceiros_${$('#doc_id').textContent}.pdf`;
+      const filename = `DUO_Autorizacao_Terceiros_${document.getElementById('doc_id').textContent}.pdf`;
       pdf.save(filename);
     }
 
@@ -422,8 +429,8 @@
       el && el.addEventListener('change', renderPreview);
     });
 
-    $('#btnPDF').addEventListener('click', (e)=>{ e.preventDefault(); generatePDF(); });
-    $('#btnReset').addEventListener('click', (e)=>{ e.preventDefault(); if(confirm('Limpar todos os campos?')) location.reload(); });
+    document.getElementById('btnPDF').addEventListener('click', (e)=>{ e.preventDefault(); generatePDF(); });
+    document.getElementById('btnReset').addEventListener('click', (e)=>{ e.preventDefault(); if(confirm('Limpar todos os campos?')) location.reload(); });
 
     setTodayBR();
     renderPreview();
