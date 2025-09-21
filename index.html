@@ -44,7 +44,14 @@
     .muted{color:var(--muted)}
     .hr{height:1px;background:#1f2937;border:0;margin:12px 0}
     footer{margin-top:20px;font-size:12px;color:var(--muted);text-align:center}
-    .sheet{background:white;color:#111; width:794px; min-height:1123px; padding:28mm 20mm; border:1px solid #ddd; border-radius:6px; box-shadow:0 4px 30px rgba(0,0,0,.15)}
+    /* Printable area */
+    .sheet{background:white;color:#111; width:794px; min-height:1123px; padding:28mm 20mm; border:1px solid #ddd; border-radius:6px; box-shadow:0 4px 30px rgba(0,0,0,.15);
+      /* 1) Melhorar espaçamento no PDF renderizado */
+      word-spacing: .06em; letter-spacing: .01em; text-rendering: optimizeLegibility; -webkit-font-smoothing: antialiased; font-kerning: normal; hyphens: none; word-break: normal; overflow-wrap: anywhere;
+    }
+    .sheet h3, .sheet th, .sheet strong, .sheet .title-tight {
+      word-spacing: .08em; letter-spacing: .02em;
+    }
     .sheet h3{margin:0 0 8px}
     .sheet small{color:#555}
     .sheet .section{margin-top:14px}
@@ -52,7 +59,8 @@
     .sheet th,.sheet td{border:1px solid #ccc; padding:6px 8px; text-align:left}
     .sheet .sign-area{display:flex; gap:16px; align-items:flex-end; margin-top:24px}
     .sheet .sign-box{flex:1}
-    .sheet .sign-img{width:100%;max-height:130px;border:1px solid #ccc;border-radius:4px;object-fit:contain}
+    /* 2) Não esticar a assinatura: manter proporção e centralizar */
+    .sheet .sign-img{max-width:100%; height:auto; max-height:130px; width:auto; border:1px solid #ccc;border-radius:4px;object-fit:contain; display:block; margin:0 auto}
     .sheet .line{height:1px;background:#ccc;margin:6px 0}
     .sheet .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace}
   </style>
@@ -64,7 +72,7 @@
         <h1>DUO Academia · Autorização para uso de cartão por terceiros</h1>
         <div class="badge">Preencha, aceite o termo e assine com o dedo (ou mouse). Depois gere o PDF.</div>
       </div>
-      <div class="badge">v1.2</div>
+      <div class="badge">v1.3</div>
     </header>
 
     <div class="grid">
@@ -118,10 +126,10 @@
         <h2 style="margin-top:18px">4) Termo de liberação</h2>
         <div class="terms" id="termoTexto" aria-readonly="true">
           <strong>DUO ACADEMIA</strong><br>
-          Av. Simoa Gomes, 726 – Heliópolis · R. Padre Pedro Pacífico, 9 – Santo Antônio<br>
+          Av. Simoa Gomes, 726 – Heliópolis · R. Dom José, 187. Santo Antônio.<br>
           (87) 9 9666-0021 | (87) 9 9934-1230 · coordenacaoduoacademia@gmail.com<br>
           <div class="hr"></div>
-          <div style="font-weight:700;margin-bottom:6px">TERMO DE AUTORIZAÇÃO PARA USO DE CARTÃO DE CRÉDITO/DÉBITO POR TERCEIROS</div>
+          <div class="title-tight" style="text-align:center;font-weight:700;margin:6px 0 12px">TERMO DE AUTORIZAÇÃO PARA USO DE CARTÃO DE CRÉDITO/DÉBITO POR TERCEIROS</div>
           <div class="section">
             <div style="font-weight:600;">[DADOS DO TITULAR DO CARTÃO]</div>
             NOME COMPLETO: <span class="mono" id="tt_pre_titular">____________________________</span><br>
@@ -190,7 +198,7 @@
             </div>
           </div>
           <div class="line"></div>
-          <div style="text-align:center;font-weight:700;margin:6px 0 12px">TERMO DE AUTORIZAÇÃO PARA USO DE CARTÃO DE CRÉDITO/DÉBITO POR TERCEIROS</div>
+          <div class="title-tight" style="text-align:center;font-weight:700;margin:6px 0 12px">TERMO DE AUTORIZAÇÃO PARA USO DE CARTÃO DE CRÉDITO/DÉBITO POR TERCEIROS</div>
 
           <div class="section">
             <table>
@@ -246,6 +254,7 @@
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 
   <script>
+    // JS idêntico ao v1.2 (sem mudanças de lógica) -----------------------
     const $ = (sel) => document.querySelector(sel);
     const docId = () => new Date().toISOString().replace(/[-:TZ.]/g, '').slice(0, 14);
     const onlyDigits = (v) => (v||'').replace(/\\D+/g,'');
