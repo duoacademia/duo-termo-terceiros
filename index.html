@@ -6,9 +6,7 @@
   <title>DUO Academia — Termo de Autorização p/ Terceiros</title>
   <meta name="description" content="Formulário para autorização de uso de cartão por terceiros, com termo e assinatura por touch (gera PDF)." />
   <style>
-    :root{
-      --bg:#0f172a; --panel:#111827; --muted:#94a3b8; --fg:#e5e7eb; --line:#1f2937; --brand:#3b82f6; --ok:#22c55e; --warn:#f59e0b; --danger:#ef4444;
-    }
+    :root{ --bg:#0f172a; --panel:#111827; --muted:#94a3b8; --fg:#e5e7eb; --line:#1f2937; --brand:#3b82f6; --ok:#22c55e; --warn:#f59e0b; --danger:#ef4444; }
     *{box-sizing:border-box}
     html,body{height:100%}
     body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,Ubuntu,"Helvetica Neue",Arial; background:var(--bg); color:var(--fg);}
@@ -33,35 +31,32 @@
     .btn.danger{background:var(--danger); border-color:var(--danger); color:white}
     .terms{border:1px dashed #334155;border-radius:12px;padding:12px; background:#0b1220; max-height:220px; overflow:auto;}
     .checkbox{display:flex;gap:10px;align-items:center;margin:12px 0}
-    .checkbox input.ck{appearance:none; -webkit-appearance:none; width:22px; height:22px; border:2px solid #334155; border-radius:6px; background:#fff; display:inline-grid; place-content:center; cursor:pointer; outline:none}
-    .checkbox input.ck::before{content:""; width:14px; height:14px; transform:scale(0); transition:120ms transform ease-in-out; background:var(--brand); border-radius:4px}
+    .checkbox input.ck{appearance:none;-webkit-appearance:none;width:22px;height:22px;border:2px solid #334155;border-radius:6px;background:#fff;display:inline-grid;place-content:center;cursor:pointer;outline:none}
+    .checkbox input.ck::before{content:"";width:14px;height:14px;transform:scale(0);transition:120ms transform ease-in-out;background:var(--brand);border-radius:4px}
     .checkbox input.ck:checked::before{transform:scale(1)}
-    .checkbox span{font-size:14px; color:#e5e7eb; font-weight:600}
+    .checkbox span{font-size:14px;color:#e5e7eb;font-weight:600}
     .checkbox input.ck:focus{box-shadow:0 0 0 3px rgba(59,130,246,.35)}
     .sig-wrap{background:#0b1220;border:1px solid #1c2536;border-radius:12px;padding:12px}
-    canvas{width:100%;height:220px;background:#ffffff;border-radius:8px;border:1px solid #334155;touch-action: none;}
+    canvas{width:100%;height:220px;background:#ffffff;border-radius:8px;border:1px solid #334155;touch-action:none}
     .preview{position:sticky; top:24px}
     .muted{color:var(--muted)}
     .hr{height:1px;background:#1f2937;border:0;margin:12px 0}
     footer{margin-top:20px;font-size:12px;color:var(--muted);text-align:center}
-    .sheet{background:white;color:#111; width:794px; min-height:1123px; padding:28mm 20mm; border:1px solid #ddd; border-radius:6px; box-shadow:0 4px 30px rgba(0,0,0,.15);
-      word-spacing: .06em; letter-spacing: .01em; text-rendering: optimizeLegibility; -webkit-font-smoothing: antialiased; font-kerning: normal; hyphens: none; word-break: normal; overflow-wrap: anywhere;
-    }
-    .sheet h3, .sheet th, .sheet strong, .sheet .title-tight {
-      word-spacing: .08em; letter-spacing: .02em;
-    }
+    .sheet{background:white;color:#111;width:794px;min-height:1123px;padding:28mm 20mm;border:1px solid #ddd;border-radius:6px;box-shadow:0 4px 30px rgba(0,0,0,.15);
+      word-spacing:.06em;letter-spacing:.01em;text-rendering:optimizeLegibility;-webkit-font-smoothing:antialiased;font-kerning:normal;hyphens:none;overflow-wrap:anywhere}
+    .sheet h3,.sheet th,.sheet strong,.sheet .title-tight{word-spacing:.08em;letter-spacing:.02em}
     .sheet h3{margin:0 0 8px}
     .sheet small{color:#555}
     .sheet .section{margin-top:14px}
-    .sheet table{width:100%; border-collapse:collapse; font-size:13px}
-    .sheet th,.sheet td{border:1px solid #ccc; padding:6px 8px; text-align:left}
-    .sheet .sign-area{display:flex; gap:16px; align-items:flex-end; margin-top:24px}
+    .sheet table{width:100%;border-collapse:collapse;font-size:13px}
+    .sheet th,.sheet td{border:1px solid #ccc;padding:6px 8px;text-align:left}
+    .sheet .sign-area{display:flex;gap:16px;align-items:flex-end;margin-top:24px}
     .sheet .sign-box{flex:1}
-    .sheet .sign-img{max-width:100%; height:auto; max-height:130px; width:auto; border:1px solid #ccc;border-radius:4px;object-fit:contain; display:block; margin:0 auto}
+    .sheet .sign-img{max-width:100%;height:auto;max-height:130px;width:auto;border:1px solid #ccc;border-radius:4px;object-fit:contain;display:block;margin:0 auto}
     .sheet .line{height:1px;background:#ccc;margin:6px 0}
     .sheet .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace}
-    .sheet .brand{display:flex; align-items:center; gap:10px}
-    .sheet .brand img.logo{height:38px; width:auto; display:block}
+    .sheet .brand{display:flex;align-items:center;gap:10px}
+    .sheet .brand img.logo{height:38px;width:auto;display:block}
   </style>
 </head>
 <body>
@@ -71,7 +66,7 @@
         <h1>DUO Academia · Autorização para uso de cartão por terceiros</h1>
         <div class="badge">Preencha, aceite o termo e assine com o dedo (ou mouse). Depois gere o PDF.</div>
       </div>
-      <div class="badge">v1.5</div>
+      <div class="badge">v1.5.2</div>
     </header>
 
     <div class="grid">
@@ -80,7 +75,7 @@
         <div class="row">
           <div>
             <label for="titular_nome">Nome completo</label>
-            <input id="titular_nome" required placeholder="Ex.: João da Silva" />
+            <input id="titular_nome" placeholder="Ex.: João da Silva" />
           </div>
           <div>
             <label for="titular_cpf">CPF</label>
@@ -100,12 +95,7 @@
             <label for="bandeira">Bandeira (opcional)</label>
             <select id="bandeira">
               <option value="">Selecione…</option>
-              <option>Visa</option>
-              <option>Mastercard</option>
-              <option>Elo</option>
-              <option>Amex</option>
-              <option>Hipercard</option>
-              <option>Outros</option>
+              <option>Visa</option><option>Mastercard</option><option>Elo</option><option>Amex</option><option>Hipercard</option><option>Outros</option>
             </select>
           </div>
         </div>
@@ -114,7 +104,7 @@
         <div class="row">
           <div>
             <label for="contratante_nome">Nome completo</label>
-            <input id="contratante_nome" required placeholder="Ex.: Maria Oliveira" />
+            <input id="contratante_nome" placeholder="Ex.: Maria Oliveira" />
           </div>
           <div>
             <label for="contratante_cpf">CPF</label>
@@ -260,137 +250,108 @@
     const docId = () => new Date().toISOString().replace(/[-:TZ.]/g, '').slice(0, 14);
     const onlyDigits = (v) => (v||'').replace(/\\D+/g,'');
 
+    // logo (opcional via ?logo=)
     const DEFAULT_LOGO = 'logo.png';
     const urlParamLogo = new URLSearchParams(location.search).get('logo');
     const logoSrc = urlParamLogo || DEFAULT_LOGO;
-    (function setLogo(){
-      const img = document.getElementById('sheet_logo');
-      if (img){ img.src = logoSrc; img.setAttribute('crossorigin','anonymous'); }
-    })();
+    (function setLogo(){ const img = document.getElementById('sheet_logo'); if (img){ img.src = logoSrc; img.setAttribute('crossorigin','anonymous'); } })();
 
+    // CPF mask + valida
     const maskCPF = (v) => {
       v = onlyDigits(v).slice(0,11);
-      return v.replace(/(\\d{3})(\\d)/, '$1.$2')
-              .replace(/(\\d{3})(\\d)/, '$1.$2')
-              .replace(/(\\d{3})(\\d{1,2})$/, '$1-$2');
+      return v.replace(/(\\d{3})(\\d)/,'$1.$2').replace(/(\\d{3})(\\d)/,'$1.$2').replace(/(\\d{3})(\\d{1,2})$/,'$1-$2');
     };
-
     function isValidCPF(cpf){
       cpf = onlyDigits(cpf);
       if (cpf.length !== 11) return false;
       if (/^(\\d)\\1{10}$/.test(cpf)) return false;
-      let sum = 0, rest;
-      for (let i=1;i<=9;i++) sum += parseInt(cpf.substring(i-1,i)) * (11 - i);
-      rest = (sum * 10) % 11; if (rest === 10 || rest === 11) rest = 0; if (rest !== parseInt(cpf.substring(9,10))) return false;
-      sum = 0; for (let i=1;i<=10;i++) sum += parseInt(cpf.substring(i-1,i)) * (12 - i);
-      rest = (sum * 10) % 11; if (rest === 10 || rest === 11) rest = 0; return rest === parseInt(cpf.substring(10,11));
+      let s=0, r;
+      for (let i=1;i<=9;i++) s += parseInt(cpf.substring(i-1,i))*(11-i);
+      r = (s*10)%11; if (r===10||r===11) r=0; if (r!==parseInt(cpf.substring(9,10))) return false;
+      s=0; for (let i=1;i<=10;i++) s += parseInt(cpf.substring(i-1,i))*(12-i);
+      r = (s*10)%11; if (r===10||r===11) r=0; return r===parseInt(cpf.substring(10,11));
     }
 
     function setTodayBR(){
-      try{
-        const parts = new Intl.DateTimeFormat('pt-BR', {
-          timeZone: 'America/Fortaleza',
-          day: '2-digit', month: '2-digit', year: 'numeric'
-        }).formatToParts(new Date());
-        const dd = parts.find(p => p.type === 'day').value;
-        const mm = parts.find(p => p.type === 'month').value;
-        const yyyy = parts.find(p => p.type === 'year').value;
-        const iso = `${yyyy}-${mm}-${dd}`;
-        $('#data_assinatura').value = iso;
-        $('#doc_data').textContent = `${dd}/${mm}/${yyyy}`;
-      }catch(e){
-        const tz = new Date();
-        const yyyy = tz.getFullYear();
-        const mm = String(tz.getMonth()+1).padStart(2,'0');
-        const dd = String(tz.getDate()).padStart(2,'0');
-        $('#data_assinatura').value = `${yyyy}-${mm}-${dd}`;
-        $('#doc_data').textContent = `${dd}/${mm}/${yyyy}`;
-      }
+      const d = new Date();
+      const fmt = (opts)=> new Intl.DateTimeFormat('pt-BR',{ timeZone:'America/Fortaleza', ...opts });
+      const p = fmt({ day:'2-digit', month:'2-digit', year:'numeric' }).formatToParts(d);
+      const dd = p.find(x=>x.type==='day').value;
+      const mm = p.find(x=>x.type==='month').value;
+      const yy = p.find(x=>x.type==='year').value;
+      document.getElementById('data_assinatura').value = `${yy}-${mm}-${dd}`;
+      document.getElementById('doc_data').textContent = `${dd}/${mm}/${yy}`;
     }
+    const formatDateBR = (iso) => { if(!iso) return ''; const [y,m,d]=iso.split('-'); return `${d}/${m}/${y}`; };
 
-    const formatDateBR = (inputDate) => {
-      if (!inputDate) return '';
-      const [y,m,d] = inputDate.split('-');
-      return `${d}/${m}/${y}`;
-    };
+    // eventos de máscara
+    document.getElementById('titular_cpf').addEventListener('input', (e)=> e.target.value = maskCPF(e.target.value));
+    document.getElementById('contratante_cpf').addEventListener('input', (e)=> e.target.value = maskCPF(e.target.value));
+    document.getElementById('ultimos4').addEventListener('input', (e)=> e.target.value = onlyDigits(e.target.value).slice(0,4));
 
-    $('#titular_cpf').addEventListener('input', (e)=> e.target.value = maskCPF(e.target.value));
-    $('#contratante_cpf').addEventListener('input', (e)=> e.target.value = maskCPF(e.target.value));
-    $('#ultimos4').addEventListener('input', (e)=> e.target.value = onlyDigits(e.target.value).slice(0,4));
-
+    // assinatura hiDPI
     const canvas = document.getElementById('signaturePad');
     function resizeCanvasForHiDPI(){
-      const ratio = Math.max(window.devicePixelRatio || 1, 1);
+      const ratio = Math.max(window.devicePixelRatio||1,1);
       const rect = canvas.getBoundingClientRect();
-      canvas.width  = rect.width * ratio;
-      canvas.height = rect.height * ratio;
-      const ctx = canvas.getContext('2d');
-      ctx.scale(ratio, ratio);
+      canvas.width = rect.width*ratio; canvas.height = rect.height*ratio;
+      canvas.getContext('2d').scale(ratio,ratio);
     }
     let signaturePad;
-    function initSignature(){
-      resizeCanvasForHiDPI();
-      signaturePad = new SignaturePad(canvas, {
-        backgroundColor:'#ffffff',
-        penColor:'#111827',
-        minWidth:0.7, maxWidth:2.2, throttle:0
-      });
-      canvas.addEventListener('mouseup', renderPreview);
-      canvas.addEventListener('touchend', renderPreview);
-    }
+    function initSignature(){ resizeCanvasForHiDPI(); signaturePad = new SignaturePad(canvas,{ backgroundColor:'#fff', penColor:'#111827', minWidth:0.7, maxWidth:2.2 }); }
     initSignature();
-    window.addEventListener('resize', ()=>{
-      const data = signaturePad.toData();
-      resizeCanvasForHiDPI();
-      signaturePad.clear();
-      signaturePad.fromData(data);
-    });
+    window.addEventListener('resize', ()=>{ const data = signaturePad.toData(); resizeCanvasForHiDPI(); signaturePad.clear(); signaturePad.fromData(data); });
     document.getElementById('btnLimpar').addEventListener('click', (e)=>{ e.preventDefault(); signaturePad.clear(); renderPreview(); });
 
     function getValues(){
       return {
-        titular_nome: document.getElementById('titular_nome').value.trim(),
-        titular_cpf: document.getElementById('titular_cpf').value.trim(),
-        ultimos4: onlyDigits(document.getElementById('ultimos4').value).slice(0,4),
-        bandeira: document.getElementById('bandeira').value.trim(),
-        contratante_nome: document.getElementById('contratante_nome').value.trim(),
-        contratante_cpf: document.getElementById('contratante_cpf').value.trim(),
-        aceite: document.getElementById('aceite').checked,
-        data: document.getElementById('data_assinatura').value
+        titular_nome: $('#titular_nome').value.trim(),
+        titular_cpf: $('#titular_cpf').value.trim(),
+        ultimos4: onlyDigits($('#ultimos4').value).slice(0,4),
+        bandeira: $('#bandeira').value.trim(),
+        contratante_nome: $('#contratante_nome').value.trim(),
+        contratante_cpf: $('#contratante_cpf').value.trim(),
+        aceite: $('#aceite').checked,
+        data: $('#data_assinatura').value
       };
     }
 
     function renderPreview(){
       const v = getValues();
-      document.getElementById('doc_data').textContent = formatDateBR(v.data);
-      document.getElementById('pv_titular_nome').textContent = v.titular_nome;
-      document.getElementById('pv_titular_cpf').textContent = v.titular_cpf;
-      document.getElementById('pv_u4').textContent = v.ultimos4;
-      document.getElementById('pv_bandeira').textContent = v.bandeira || '—';
-      document.getElementById('pv_contratante_nome').textContent = v.contratante_nome;
-      document.getElementById('pv_contratante_cpf').textContent = v.contratante_cpf;
-      document.getElementById('tt_pre_titular').textContent = v.titular_nome || '____________________________';
-      document.getElementById('tt_pre_cpf_titular').textContent = v.titular_cpf || '___.___.___-__';
-      document.getElementById('tt_pre_u4').textContent = v.ultimos4 || '____';
-      document.getElementById('tt_pre_contratante').textContent = v.contratante_nome || '____________________________';
-      document.getElementById('tt_pre_cpf_contratante').textContent = v.contratante_cpf || '___.___.___-__';
-      const dataUrl = signaturePad.isEmpty() ? '' : signaturePad.toDataURL('image/png');
-      document.getElementById('pv_assinatura').src = dataUrl;
+      $('#doc_data').textContent = formatDateBR(v.data);
+      $('#pv_titular_nome').textContent = v.titular_nome;
+      $('#pv_titular_cpf').textContent = v.titular_cpf;
+      $('#pv_u4').textContent = v.ultimos4;
+      $('#pv_bandeira').textContent = v.bandeira || '—';
+      $('#pv_contratante_nome').textContent = v.contratante_nome;
+      $('#pv_contratante_cpf').textContent = v.contratante_cpf;
+      $('#tt_pre_titular').textContent = v.titular_nome || '____________________________';
+      $('#tt_pre_cpf_titular').textContent = v.titular_cpf || '___.___.___-__';
+      $('#tt_pre_u4').textContent = v.ultimos4 || '____';
+      $('#tt_pre_contratante').textContent = v.contratante_nome || '____________________________';
+      $('#tt_pre_cpf_contratante').textContent = v.contratante_cpf || '___.___.___-__';
+      $('#pv_assinatura').src = signaturePad.isEmpty() ? '' : signaturePad.toDataURL('image/png');
     }
 
     function normalizeName(s){
       return (s||'').normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').replace(/\\s+/g,' ').trim().toUpperCase();
     }
+    function normalizePersonNameStrict(s){
+      // remove preposições comuns e espaços
+      return normalizeName(s).replace(/\\b(DE|DA|DO|DAS|DOS|DI|DU)\\b/g,'').replace(/\\s+/g,' ').trim();
+    }
 
     function validateForPDF(v){
       if (!v.titular_nome) return 'Informe o nome completo do TITULAR.';
       if (!v.contratante_nome) return 'Informe o nome completo do CONTRATANTE.';
-
       if (!isValidCPF(v.titular_cpf)) return 'CPF do TITULAR inválido.';
       if (!isValidCPF(v.contratante_cpf)) return 'CPF do CONTRATANTE inválido.';
 
+      // checagens de pessoa diferente (robustas)
       const sameCPF = onlyDigits(v.titular_cpf) === onlyDigits(v.contratante_cpf);
-      const sameName = normalizeName(v.titular_nome) === normalizeName(v.contratante_nome);
+      const nTit = normalizePersonNameStrict(v.titular_nome);
+      const nCon = normalizePersonNameStrict(v.contratante_nome);
+      const sameName = (nTit.length >= 5 && nCon.length >= 5 && nTit === nCon);
       if (sameCPF || sameName){
         let detalhes = [];
         if (sameCPF) detalhes.push('CPF do TITULAR e do CONTRATANTE são iguais.');
@@ -408,7 +369,7 @@
       const v = getValues();
       const err = validateForPDF(v);
       if (err){ alert(err); return; }
-      document.getElementById('doc_id').textContent = docId();
+      $('#doc_id').textContent = docId();
       renderPreview();
       const area = document.getElementById('printArea');
       const canvasImg = await html2canvas(area, { scale: 2, useCORS: true });
@@ -416,19 +377,15 @@
       const { jsPDF } = window.jspdf;
       const pdf = new jsPDF('p','mm','a4');
       const pageWidth = pdf.internal.pageSize.getWidth();
-      const imgProps = { w: pageWidth - 20, h: (canvasImg.height * (pageWidth - 20)) / canvasImg.width };
-      const x = 10, y = 10;
-      pdf.addImage(imgData, 'PNG', x, y, imgProps.w, imgProps.h, undefined, 'FAST');
-      const filename = `DUO_Autorizacao_Terceiros_${document.getElementById('doc_id').textContent}.pdf`;
+      const w = pageWidth - 20, h = (canvasImg.height * w) / canvasImg.width;
+      pdf.addImage(imgData, 'PNG', 10, 10, w, h, undefined, 'FAST');
+      const filename = `DUO_Autorizacao_Terceiros_${$('#doc_id').textContent}.pdf`;
       pdf.save(filename);
     }
 
-    ['titular_nome','titular_cpf','ultimos4','bandeira','contratante_nome','contratante_cpf','aceite','data_assinatura'].forEach(id => {
-      const el = document.getElementById(id);
-      el && el.addEventListener('input', renderPreview);
-      el && el.addEventListener('change', renderPreview);
-    });
-
+    // listeners
+    ['titular_nome','titular_cpf','ultimos4','bandeira','contratante_nome','contratante_cpf','aceite','data_assinatura']
+      .forEach(id => { const el = document.getElementById(id); el && el.addEventListener('input', renderPreview); el && el.addEventListener('change', renderPreview); });
     document.getElementById('btnPDF').addEventListener('click', (e)=>{ e.preventDefault(); generatePDF(); });
     document.getElementById('btnReset').addEventListener('click', (e)=>{ e.preventDefault(); if(confirm('Limpar todos os campos?')) location.reload(); });
 
