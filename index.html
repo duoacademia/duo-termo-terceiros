@@ -57,6 +57,13 @@
     .sheet .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace}
     .sheet .brand{display:flex;align-items:center;gap:10px}
     .sheet .brand img.logo{height:38px;width:auto;display:block}
+
+    /* ====== UPPERCASE nas respostas digitadas ====== */
+    input[type="text"], input:not([type]), textarea { text-transform: uppercase; }
+    /* opcional: evita upper para inputs com números evidentes */
+    input[type="date"], input[type="number"] { text-transform: none; }
+    select { text-transform: none; } /* select tratado no JS para a prévia */
+    #printArea .ans { text-transform: uppercase; }
   </style>
 </head>
 <body>
@@ -75,11 +82,11 @@
         <div class="row">
           <div>
             <label for="titular_nome">Nome completo</label>
-            <input id="titular_nome" placeholder="Ex.: João da Silva" />
+            <input id="titular_nome" placeholder="Ex.: João da Silva" type="text" />
           </div>
           <div>
             <label for="titular_cpf">CPF</label>
-            <input id="titular_cpf" inputmode="numeric" maxlength="14" placeholder="000.000.000-00" />
+            <input id="titular_cpf" inputmode="numeric" maxlength="14" placeholder="000.000.000-00" type="text" />
             <div class="help">Validado somente ao gerar o PDF.</div>
           </div>
         </div>
@@ -88,7 +95,7 @@
         <div class="row">
           <div>
             <label for="ultimos4">Quatro últimos dígitos</label>
-            <input id="ultimos4" inputmode="numeric" maxlength="4" placeholder="1234" />
+            <input id="ultimos4" inputmode="numeric" maxlength="4" placeholder="1234" type="text" />
             <div class="help">Apenas 4 dígitos.</div>
           </div>
           <div>
@@ -104,11 +111,11 @@
         <div class="row">
           <div>
             <label for="contratante_nome">Nome completo</label>
-            <input id="contratante_nome" placeholder="Ex.: Maria Oliveira" />
+            <input id="contratante_nome" placeholder="Ex.: Maria Oliveira" type="text" />
           </div>
           <div>
             <label for="contratante_cpf">CPF</label>
-            <input id="contratante_cpf" inputmode="numeric" maxlength="14" placeholder="000.000.000-00" />
+            <input id="contratante_cpf" inputmode="numeric" maxlength="14" placeholder="000.000.000-00" type="text" />
           </div>
         </div>
 
@@ -180,8 +187,10 @@
               <img id="sheet_logo" class="logo" alt="Logo DUO" crossorigin="anonymous" />
               <div>
                 <h3>DUO ACADEMIA</h3>
-                <small>Av. Simoa Gomes, 726 – Heliópolis · R. Dom José, 187 – Santo Antônio<br>
-                (87) 9 9666-0021 | (87) 9 9934-1230 · coordenacaoduoacademia@gmail.com</small>
+                <small style="font-size:6px; line-height:1.05;">
+                  Av. Simoa Gomes, 726 – Heliópolis · R. Dom José, 187 – Santo Antônio<br>
+                  (87) 9 9666-0021 | (87) 9 9934-1230 · coordenacaoduoacademia@gmail.com
+                </small>
               </div>
             </div>
             <div style="text-align:right">
@@ -195,7 +204,7 @@
           <div class="section">
             <table>
               <tr><th colspan="2">DADOS DO TITULAR DO CARTÃO</th></tr>
-              <tr><td>Nome</td><td id="pv_titular_nome"></td></tr>
+              <tr><td>Nome</td><td id="pv_titular_nome" class="ans"></td></tr>
               <tr><td>CPF</td><td id="pv_titular_cpf"></td></tr>
             </table>
           </div>
@@ -204,14 +213,14 @@
             <table>
               <tr><th colspan="2">DADOS DO CARTÃO UTILIZADO</th></tr>
               <tr><td>Últimos 4 dígitos</td><td id="pv_u4"></td></tr>
-              <tr><td>Bandeira</td><td id="pv_bandeira"></td></tr>
+              <tr><td>Bandeira</td><td id="pv_bandeira" class="ans"></td></tr>
             </table>
           </div>
 
           <div class="section">
             <table>
               <tr><th colspan="2">DADOS DO CONTRATANTE DO PLANO</th></tr>
-              <tr><td>Nome</td><td id="pv_contratante_nome"></td></tr>
+              <tr><td>Nome</td><td id="pv_contratante_nome" class="ans"></td></tr>
               <tr><td>CPF</td><td id="pv_contratante_cpf"></td></tr>
             </table>
           </div>
@@ -249,6 +258,7 @@
     const $ = (sel) => document.querySelector(sel);
     const docId = () => new Date().toISOString().replace(/[-:TZ.]/g, '').slice(0, 14);
     const onlyDigits = (v) => (v||'').replace(/\\D+/g,'');
+    const U = s => (s || '').toLocaleUpperCase('pt-BR'); // força maiúsculas
 
     // logo (opcional via ?logo=)
     const DEFAULT_LOGO = 'logo.png';
@@ -319,16 +329,16 @@
     function renderPreview(){
       const v = getValues();
       $('#doc_data').textContent = formatDateBR(v.data);
-      $('#pv_titular_nome').textContent = v.titular_nome;
+      $('#pv_titular_nome').textContent = U(v.titular_nome);
       $('#pv_titular_cpf').textContent = v.titular_cpf;
       $('#pv_u4').textContent = v.ultimos4;
-      $('#pv_bandeira').textContent = v.bandeira || '—';
-      $('#pv_contratante_nome').textContent = v.contratante_nome;
+      $('#pv_bandeira').textContent = U(v.bandeira || '—');
+      $('#pv_contratante_nome').textContent = U(v.contratante_nome);
       $('#pv_contratante_cpf').textContent = v.contratante_cpf;
-      $('#tt_pre_titular').textContent = v.titular_nome || '____________________________';
+      $('#tt_pre_titular').textContent = U(v.titular_nome) || '____________________________';
       $('#tt_pre_cpf_titular').textContent = v.titular_cpf || '___.___.___-__';
       $('#tt_pre_u4').textContent = v.ultimos4 || '____';
-      $('#tt_pre_contratante').textContent = v.contratante_nome || '____________________________';
+      $('#tt_pre_contratante').textContent = U(v.contratante_nome) || '____________________________';
       $('#tt_pre_cpf_contratante').textContent = v.contratante_cpf || '___.___.___-__';
       $('#pv_assinatura').src = signaturePad.isEmpty() ? '' : signaturePad.toDataURL('image/png');
     }
@@ -337,7 +347,6 @@
       return (s||'').normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').replace(/\\s+/g,' ').trim().toUpperCase();
     }
     function normalizePersonNameStrict(s){
-      // remove preposições comuns e espaços
       return normalizeName(s).replace(/\\b(DE|DA|DO|DAS|DOS|DI|DU)\\b/g,'').replace(/\\s+/g,' ').trim();
     }
 
@@ -347,7 +356,6 @@
       if (!isValidCPF(v.titular_cpf)) return 'CPF do TITULAR inválido.';
       if (!isValidCPF(v.contratante_cpf)) return 'CPF do CONTRATANTE inválido.';
 
-      // checagens de pessoa diferente (robustas)
       const sameCPF = onlyDigits(v.titular_cpf) === onlyDigits(v.contratante_cpf);
       const nTit = normalizePersonNameStrict(v.titular_nome);
       const nCon = normalizePersonNameStrict(v.contratante_nome);
@@ -356,7 +364,7 @@
         let detalhes = [];
         if (sameCPF) detalhes.push('CPF do TITULAR e do CONTRATANTE são iguais.');
         if (sameName) detalhes.push('Nome do TITULAR e do CONTRATANTE são iguais.');
-        return 'Os dados do TITULAR e do CONTRATANTE devem ser de pessoas diferentes.\n' + detalhes.join(' ');
+        return 'Os dados do TITULAR e do CONTRATANTE devem ser de pessoas diferentes.\\n' + detalhes.join(' ');
       }
 
       if (!v.ultimos4 || v.ultimos4.length !== 4) return 'Informe os 4 últimos dígitos do cartão.';
