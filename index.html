@@ -21,6 +21,7 @@
     .row{display:grid;grid-template-columns:1fr 1fr; gap:12px}
     .row-1{grid-template-columns:1fr}
     label{display:block;font-size:12px;color:var(--muted);margin:10px 0 6px}
+    .req::after{content:" *"; color:var(--danger); font-weight:700}
     input,select,textarea{width:100%;background:#0b1220;border:1px solid #1c2536;color:var(--fg);border-radius:10px;padding:12px;outline:none}
     input:focus,textarea:focus,select:focus{border-color:var(--brand);box-shadow:0 0 0 3px rgba(59,130,246,.25)}
     .help{font-size:12px;color:var(--muted);margin-top:4px}
@@ -52,18 +53,21 @@
     .sheet th,.sheet td{border:1px solid #ccc;padding:6px 8px;text-align:left}
     .sheet .sign-area{display:flex;gap:16px;align-items:flex-end;margin-top:24px}
     .sheet .sign-box{flex:1}
-    .sheet .sign-img{max-width:100%;height:auto;max-height:130px;width:auto;border:1px solid #ccc;border-radius:4px;object-fit:contain;display:block;margin:0 auto}
+    /* assinatura sem contorno/rebarbas */
+    .sheet .sign-img{max-width:100%;height:auto;max-height:130px;width:auto;border:none;background:transparent;object-fit:contain;display:block;margin:0 auto;image-rendering:auto}
     .sheet .line{height:1px;background:#ccc;margin:6px 0}
     .sheet .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace}
     .sheet .brand{display:flex;align-items:center;gap:10px}
     .sheet .brand img.logo{height:38px;width:auto;display:block}
 
-    /* ====== UPPERCASE nas respostas digitadas ====== */
+    /* UPPERCASE nas respostas digitadas */
     input[type="text"], input:not([type]), textarea { text-transform: uppercase; }
-    /* opcional: evita upper para inputs com números evidentes */
     input[type="date"], input[type="number"] { text-transform: none; }
-    select { text-transform: none; } /* select tratado no JS para a prévia */
+    select { text-transform: none; }
     #printArea .ans { text-transform: uppercase; }
+
+    /* melhora UX do select obrigatório */
+    select:required:invalid { color: var(--muted); }
   </style>
 </head>
 <body>
@@ -73,7 +77,7 @@
         <h1>DUO Academia · Autorização para uso de cartão por terceiros</h1>
         <div class="badge">Preencha, aceite o termo e assine com o dedo (ou mouse). Depois gere o PDF.</div>
       </div>
-      <div class="badge">v1.5.2</div>
+      <div class="badge">v1.5.3</div>
     </header>
 
     <div class="grid">
@@ -99,9 +103,9 @@
             <div class="help">Apenas 4 dígitos.</div>
           </div>
           <div>
-            <label for="bandeira">Bandeira (opcional)</label>
-            <select id="bandeira">
-              <option value="">Selecione…</option>
+            <label for="bandeira" class="req">Bandeira</label>
+            <select id="bandeira" required aria-required="true">
+              <option value="" selected disabled>Selecione…</option>
               <option>Visa</option><option>Mastercard</option><option>Elo</option><option>Amex</option><option>Hipercard</option><option>Outros</option>
             </select>
           </div>
@@ -236,216 +240,4 @@
           <div class="section sign-area">
             <div class="sign-box">
               <div style="margin-bottom:6px">Assinante: <span id="pv_quem">Titular do Cartão</span></div>
-              <img id="pv_assinatura" class="sign-img" alt="Assinatura" />
-              <div class="line"></div>
-              <div style="font-size:12px;color:#555">Assinatura (rúbrica)</div>
-            </div>
-          </div>
-        </div>
-        <footer>
-          Dica: você também pode usar <strong>Imprimir &gt; Salvar como PDF</strong> se preferir.
-        </footer>
-      </div>
-    </div>
-  </div>
-
-  <!-- libs -->
-  <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.7/dist/signature_pad.umd.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
-
-  <script>
-    const $ = (sel) => document.querySelector(sel);
-    const docId = () => new Date().toISOString().replace(/[-:TZ.]/g, '').slice(0, 14);
-    const onlyDigits = (v) => (v||'').replace(/\\D+/g,'');
-    const U = s => (s || '').toLocaleUpperCase('pt-BR'); // força maiúsculas
-
-    // logo (opcional via ?logo=)
-    const DEFAULT_LOGO = 'logo.png';
-    const urlParamLogo = new URLSearchParams(location.search).get('logo');
-    const logoSrc = urlParamLogo || DEFAULT_LOGO;
-    (function setLogo(){ const img = document.getElementById('sheet_logo'); if (img){ img.src = logoSrc; img.setAttribute('crossorigin','anonymous'); } })();
-
-    // CPF mask + valida
-    const maskCPF = (v) => {
-      v = onlyDigits(v).slice(0,11);
-      return v.replace(/(\\d{3})(\\d)/,'$1.$2').replace(/(\\d{3})(\\d)/,'$1.$2').replace(/(\\d{3})(\\d{1,2})$/,'$1-$2');
-    };
-    function isValidCPF(cpf){
-      cpf = onlyDigits(cpf);
-      if (cpf.length !== 11) return false;
-      if (/^(\\d)\\1{10}$/.test(cpf)) return false;
-      let s=0, r;
-      for (let i=1;i<=9;i++) s += parseInt(cpf.substring(i-1,i))*(11-i);
-      r = (s*10)%11; if (r===10||r===11) r=0; if (r!==parseInt(cpf.substring(9,10))) return false;
-      s=0; for (let i=1;i<=10;i++) s += parseInt(cpf.substring(i-1,i))*(12-i);
-      r = (s*10)%11; if (r===10||r===11) r=0; return r===parseInt(cpf.substring(10,11));
-    }
-
-    function setTodayBR(){
-      const d = new Date();
-      const fmt = (opts)=> new Intl.DateTimeFormat('pt-BR',{ timeZone:'America/Fortaleza', ...opts });
-      const p = fmt({ day:'2-digit', month:'2-digit', year:'numeric' }).formatToParts(d);
-      const dd = p.find(x=>x.type==='day').value;
-      const mm = p.find(x=>x.type==='month').value;
-      const yy = p.find(x=>x.type==='year').value;
-      document.getElementById('data_assinatura').value = `${yy}-${mm}-${dd}`;
-      document.getElementById('doc_data').textContent = `${dd}/${mm}/${yy}`;
-    }
-    const formatDateBR = (iso) => { if(!iso) return ''; const [y,m,d]=iso.split('-'); return `${d}/${m}/${y}`; };
-
-    // eventos de máscara
-    document.getElementById('titular_cpf').addEventListener('input', (e)=> e.target.value = maskCPF(e.target.value));
-    document.getElementById('contratante_cpf').addEventListener('input', (e)=> e.target.value = maskCPF(e.target.value));
-    document.getElementById('ultimos4').addEventListener('input', (e)=> e.target.value = onlyDigits(e.target.value).slice(0,4));
-
-    // assinatura hiDPI
-    const canvas = document.getElementById('signaturePad');
-    function resizeCanvasForHiDPI(){
-      const ratio = Math.max(window.devicePixelRatio||1,1);
-      const rect = canvas.getBoundingClientRect();
-      canvas.width = rect.width*ratio; canvas.height = rect.height*ratio;
-      canvas.getContext('2d').scale(ratio,ratio);
-    }
-    let signaturePad;
-    function initSignature(){ resizeCanvasForHiDPI(); signaturePad = new SignaturePad(canvas,{ backgroundColor:'rgba(0,0,0,0)', penColor:'#111827', minWidth:0.7, maxWidth:2.2 }); }
-    initSignature();
-    window.addEventListener('resize', ()=>{ const data = signaturePad.toData(); resizeCanvasForHiDPI(); signaturePad.clear(); signaturePad.fromData(data); });
-    document.getElementById('btnLimpar').addEventListener('click', (e)=>{ e.preventDefault(); signaturePad.clear(); renderPreview(); });
-
-    function getValues(){
-      return {
-        titular_nome: $('#titular_nome').value.trim(),
-        titular_cpf: $('#titular_cpf').value.trim(),
-        ultimos4: onlyDigits($('#ultimos4').value).slice(0,4),
-        bandeira: $('#bandeira').value.trim(),
-        contratante_nome: $('#contratante_nome').value.trim(),
-        contratante_cpf: $('#contratante_cpf').value.trim(),
-        aceite: $('#aceite').checked,
-        data: $('#data_assinatura').value
-      };
-    }
-
-    
-// recorta bordas transparentes do PNG da assinatura
-function cropTransparent(dataURL, padding=4, threshold=1){
-  return new Promise(resolve => {
-    const img = new Image();
-    img.onload = () => {
-      const w = img.width, h = img.height;
-      const c = document.createElement('canvas');
-      const ctx = c.getContext('2d', { willReadFrequently: true });
-      c.width = w; c.height = h;
-      ctx.drawImage(img, 0, 0);
-      const data = ctx.getImageData(0,0,w,h).data;
-
-      let top = h, left = w, right = 0, bottom = 0;
-      for (let y=0; y<h; y++){
-        for (let x=0; x<w; x++){
-          const i = (y*w + x) * 4;
-          const alpha = data[i+3];
-          if (alpha > threshold){ // pixel desenhado
-            if (x < left) left = x;
-            if (x > right) right = x;
-            if (y < top) top = y;
-            if (y > bottom) bottom = y;
-          }
-        }
-      }
-      if (right < left || bottom < top){ // vazio
-        resolve('');
-        return;
-      }
-      left = Math.max(0, left - padding);
-      top = Math.max(0, top - padding);
-      right = Math.min(w - 1, right + padding);
-      bottom = Math.min(h - 1, bottom + padding);
-      const cw = right - left + 1;
-      const ch = bottom - top + 1;
-
-      const c2 = document.createElement('canvas');
-      c2.width = cw; c2.height = ch;
-      const ctx2 = c2.getContext('2d');
-      ctx2.drawImage(c, left, top, cw, ch, 0, 0, cw, ch);
-      resolve(c2.toDataURL('image/png'));
-    };
-    img.src = dataURL;
-  });
-}
-
-async function renderPreview(){
-      const v = getValues();
-      $('#doc_data').textContent = formatDateBR(v.data);
-      $('#pv_titular_nome').textContent = U(v.titular_nome);
-      $('#pv_titular_cpf').textContent = v.titular_cpf;
-      $('#pv_u4').textContent = v.ultimos4;
-      $('#pv_bandeira').textContent = U(v.bandeira || '—');
-      $('#pv_contratante_nome').textContent = U(v.contratante_nome);
-      $('#pv_contratante_cpf').textContent = v.contratante_cpf;
-      $('#tt_pre_titular').textContent = U(v.titular_nome) || '____________________________';
-      $('#tt_pre_cpf_titular').textContent = v.titular_cpf || '___.___.___-__';
-      $('#tt_pre_u4').textContent = v.ultimos4 || '____';
-      $('#tt_pre_contratante').textContent = U(v.contratante_nome) || '____________________________';
-      $('#tt_pre_cpf_contratante').textContent = v.contratante_cpf || '___.___.___-__';
-      if (signaturePad.isEmpty()) { $('#pv_assinatura').src = ''; } else { $('#pv_assinatura').src = await cropTransparent(signaturePad.toDataURL('image/png'), 6); }
-    }
-
-    function normalizeName(s){
-      return (s||'').normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').replace(/\\s+/g,' ').trim().toUpperCase();
-    }
-    function normalizePersonNameStrict(s){
-      return normalizeName(s).replace(/\\b(DE|DA|DO|DAS|DOS|DI|DU)\\b/g,'').replace(/\\s+/g,' ').trim();
-    }
-
-    function validateForPDF(v){
-      if (!v.titular_nome) return 'Informe o nome completo do TITULAR.';
-      if (!v.contratante_nome) return 'Informe o nome completo do CONTRATANTE.';
-      if (!isValidCPF(v.titular_cpf)) return 'CPF do TITULAR inválido.';
-      if (!isValidCPF(v.contratante_cpf)) return 'CPF do CONTRATANTE inválido.';
-
-      const sameCPF = onlyDigits(v.titular_cpf) === onlyDigits(v.contratante_cpf);
-      const nTit = normalizePersonNameStrict(v.titular_nome);
-      const nCon = normalizePersonNameStrict(v.contratante_nome);
-      const sameName = (nTit.length >= 5 && nCon.length >= 5 && nTit === nCon);
-      if (sameCPF || sameName){
-        let detalhes = [];
-        if (sameCPF) detalhes.push('CPF do TITULAR e do CONTRATANTE são iguais.');
-        if (sameName) detalhes.push('Nome do TITULAR e do CONTRATANTE são iguais.');
-        return 'Os dados do TITULAR e do CONTRATANTE devem ser de pessoas diferentes.\\n' + detalhes.join(' ');
-      }
-
-      if (!v.ultimos4 || v.ultimos4.length !== 4) return 'Informe os 4 últimos dígitos do cartão.';
-      if (!v.aceite) return 'Você precisa aceitar o termo.';
-      if (signaturePad.isEmpty()) return 'Assine no quadro antes de gerar o PDF.';
-      return null;
-    }
-
-    async function generatePDF(){
-      const v = getValues();
-      const err = validateForPDF(v);
-      if (err){ alert(err); return; }
-      $('#doc_id').textContent = docId();
-      renderPreview();
-      const area = document.getElementById('printArea');
-      const canvasImg = await html2canvas(area, { scale: 2, useCORS: true });
-      const imgData = canvasImg.toDataURL('image/png');
-      const { jsPDF } = window.jspdf;
-      const pdf = new jsPDF('p','mm','a4');
-      const pageWidth = pdf.internal.pageSize.getWidth();
-      const w = pageWidth - 20, h = (canvasImg.height * w) / canvasImg.width;
-      pdf.addImage(imgData, 'PNG', 10, 10, w, h, undefined, 'FAST');
-      const filename = `DUO_Autorizacao_Terceiros_${$('#doc_id').textContent}.pdf`;
-      pdf.save(filename);
-    }
-
-    // listeners
-    ['titular_nome','titular_cpf','ultimos4','bandeira','contratante_nome','contratante_cpf','aceite','data_assinatura']
-      .forEach(id => { const el = document.getElementById(id); el && el.addEventListener('input', renderPreview); el && el.addEventListener('change', renderPreview); });
-    document.getElementById('btnPDF').addEventListener('click', (e)=>{ e.preventDefault(); generatePDF(); });
-    document.getElementById('btnReset').addEventListener('click', (e)=>{ e.preventDefault(); if(confirm('Limpar todos os campos?')) location.reload(); });
-
-    setTodayBR();
-    renderPreview();
-  </script>
-</body>
-</html>
+              <i
