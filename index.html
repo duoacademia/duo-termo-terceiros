@@ -186,11 +186,11 @@
             <div class="brand">
               <img id="sheet_logo" class="logo" alt="Logo DUO" crossorigin="anonymous" />
               <div>
-                <h3>DUO ACADEMIA</h3>
-                <small style="font-size:6px; line-height:1.05;">
-                  Av. Simoa Gomes, 726 – Heliópolis · R. Dom José, 187 – Santo Antônio<br>
-                  (87) 9 9666-0021 | (87) 9 9934-1230 · coordenacaoduoacademia@gmail.com
-                </small>
+               <h3 style="margin:0 0 2px;">DUO ACADEMIA</h3>
+<small style="font-size:6px; line-height:0.9; display:block; margin-top:0;">
+  Av. Simoa Gomes, 726 – Heliópolis · R. Dom José, 187 – Santo Antônio<br>
+  (87) 9 9666-0021 | (87) 9 9934-1230 · coordenacaoduoacademia@gmail.com
+</small>
               </div>
             </div>
             <div style="text-align:right">
@@ -308,7 +308,7 @@
       canvas.getContext('2d').scale(ratio,ratio);
     }
     let signaturePad;
-    function initSignature(){ resizeCanvasForHiDPI(); signaturePad = new SignaturePad(canvas,{ backgroundColor:'#fff', penColor:'#111827', minWidth:0.7, maxWidth:2.2 }); }
+    function initSignature(){ resizeCanvasForHiDPI(); signaturePad = new SignaturePad(canvas,{ backgroundColor:'rgba(0,0,0,0)', penColor:'#111827', minWidth:0.7, maxWidth:2.2 }); }
     initSignature();
     window.addEventListener('resize', ()=>{ const data = signaturePad.toData(); resizeCanvasForHiDPI(); signaturePad.clear(); signaturePad.fromData(data); });
     document.getElementById('btnLimpar').addEventListener('click', (e)=>{ e.preventDefault(); signaturePad.clear(); renderPreview(); });
@@ -326,7 +326,54 @@
       };
     }
 
-    function renderPreview(){
+    
+// recorta bordas transparentes do PNG da assinatura
+function cropTransparent(dataURL, padding=4, threshold=1){
+  return new Promise(resolve => {
+    const img = new Image();
+    img.onload = () => {
+      const w = img.width, h = img.height;
+      const c = document.createElement('canvas');
+      const ctx = c.getContext('2d', { willReadFrequently: true });
+      c.width = w; c.height = h;
+      ctx.drawImage(img, 0, 0);
+      const data = ctx.getImageData(0,0,w,h).data;
+
+      let top = h, left = w, right = 0, bottom = 0;
+      for (let y=0; y<h; y++){
+        for (let x=0; x<w; x++){
+          const i = (y*w + x) * 4;
+          const alpha = data[i+3];
+          if (alpha > threshold){ // pixel desenhado
+            if (x < left) left = x;
+            if (x > right) right = x;
+            if (y < top) top = y;
+            if (y > bottom) bottom = y;
+          }
+        }
+      }
+      if (right < left || bottom < top){ // vazio
+        resolve('');
+        return;
+      }
+      left = Math.max(0, left - padding);
+      top = Math.max(0, top - padding);
+      right = Math.min(w - 1, right + padding);
+      bottom = Math.min(h - 1, bottom + padding);
+      const cw = right - left + 1;
+      const ch = bottom - top + 1;
+
+      const c2 = document.createElement('canvas');
+      c2.width = cw; c2.height = ch;
+      const ctx2 = c2.getContext('2d');
+      ctx2.drawImage(c, left, top, cw, ch, 0, 0, cw, ch);
+      resolve(c2.toDataURL('image/png'));
+    };
+    img.src = dataURL;
+  });
+}
+
+async function renderPreview(){
       const v = getValues();
       $('#doc_data').textContent = formatDateBR(v.data);
       $('#pv_titular_nome').textContent = U(v.titular_nome);
@@ -340,7 +387,7 @@
       $('#tt_pre_u4').textContent = v.ultimos4 || '____';
       $('#tt_pre_contratante').textContent = U(v.contratante_nome) || '____________________________';
       $('#tt_pre_cpf_contratante').textContent = v.contratante_cpf || '___.___.___-__';
-      $('#pv_assinatura').src = signaturePad.isEmpty() ? '' : signaturePad.toDataURL('image/png');
+      if (signaturePad.isEmpty()) { $('#pv_assinatura').src = ''; } else { $('#pv_assinatura').src = await cropTransparent(signaturePad.toDataURL('image/png'), 6); }
     }
 
     function normalizeName(s){
