@@ -46,6 +46,18 @@
   input[type="date"], input[type="number"] { text-transform: none; }
   #printArea .ans { text-transform: uppercase; }
   select:required:invalid{color:var(--muted)}
+
+  /* >>> FIXE kerning/colagem de letras na área do PDF <<< */
+  #printArea, #printArea *{
+    font-family: Arial, Helvetica, sans-serif;
+    font-kerning: none;
+    letter-spacing: .2px;
+    word-spacing: .4px;
+    line-height: 1.25;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  #printArea table th, #printArea table td{ letter-spacing: .3px; }
 </style>
 </head>
 <body>
@@ -55,7 +67,7 @@
       <h1>DUO Academia · Autorização para uso de cartão por terceiros</h1>
       <div class="badge">Preencha, aceite o termo e assine com o dedo (ou mouse). Depois gere o PDF.</div>
     </div>
-    <div class="badge">v1.6.1</div>
+    <div class="badge">v1.6.2</div>
   </header>
 
   <div class="grid">
