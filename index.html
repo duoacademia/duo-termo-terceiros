@@ -4,7 +4,6 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>DUO Academia — Autorização p/ Terceiros</title>
-<meta name="description" content="Formulário para autorização de uso de cartão por terceiros, com termo e assinatura por touch (gera PDF)." />
 <style>
   :root{ --bg:#0f172a; --panel:#111827; --muted:#94a3b8; --fg:#e5e7eb; --line:#1f2937; --brand:#3b82f6; --ok:#22c55e; --danger:#ef4444; }
   *{box-sizing:border-box} html,body{height:100%}
@@ -25,22 +24,24 @@
   .terms{border:1px dashed #334155;border-radius:12px;padding:12px;background:#0b1220;max-height:220px;overflow:auto}
   .checkbox{display:flex;gap:10px;align-items:center;margin:12px 0}
   .checkbox input.ck{appearance:none;-webkit-appearance:none;width:22px;height:22px;border:2px solid #334155;border-radius:6px;background:#fff;display:inline-grid;place-content:center;cursor:pointer;outline:none}
-  .checkbox input.ck::before{content:"";width:14px;height:14px;transform:scale(0);transition:120ms transform; background:var(--brand);border-radius:4px}
+  .checkbox input.ck::before{content:"";width:14px;height:14px;transform:scale(0);transition:120ms transform;background:var(--brand);border-radius:4px}
   .checkbox input.ck:checked::before{transform:scale(1)}
+
   .sig-wrap{background:#0b1220;border:1px solid #1c2536;border-radius:12px;padding:12px}
-  canvas{width:100%;height:220px;background:#fff;border-radius:8px;border:1px solid #334155;touch-action:none;cursor:crosshair}
+  .sig-wrap canvas{width:100%;height:220px;background:#fff;border-radius:8px;border:1px solid #334155;display:block;
+                   touch-action:none;cursor:crosshair}
+
   .preview{position:sticky;top:24px}.hr{height:1px;background:#1f2937;border:0;margin:12px 0}
   footer{margin-top:20px;font-size:12px;color:var(--muted);text-align:center}
-  .sheet{background:#fff;color:#111;width:794px;min-height:1123px;padding:28mm 20mm;border:1px solid #ddd;border-radius:6px;box-shadow:0 4px 30px rgba(0,0,0,.15);overflow-wrap:anywhere}
+  .sheet{background:#fff;color:#111;width:794px;min-height:1123px;padding:28mm 20mm;border:1px solid #ddd;border-radius:6px;box-shadow:0 4px 30px rgba(0,0,0,.15)}
   .sheet h3{margin:0 0 8px}.sheet small{color:#555}.sheet .section{margin-top:14px}
   .sheet table{width:100%;border-collapse:collapse;font-size:13px}.sheet th,.sheet td{border:1px solid #ccc;padding:6px 8px;text-align:left}
   .sheet .sign-area{display:flex;gap:16px;align-items:flex-end;margin-top:24px}.sheet .sign-box{flex:1}
-  /* assinatura SEM contorno/rebarbas */
   .sheet .sign-img{max-width:100%;max-height:130px;border:none;background:transparent;display:block;margin:0 auto;object-fit:contain}
   .sheet .line{height:1px;background:#ccc;margin:6px 0}
   .sheet .brand{display:flex;align-items:center;gap:10px}.sheet .brand img.logo{height:38px;width:auto;display:block}
 
-  /* Respostas em MAIÚSCULO (texto livre) */
+  /* Texto livre em MAIÚSCULO na digitação */
   input[type="text"], input:not([type]), textarea { text-transform: uppercase; }
   input[type="date"], input[type="number"] { text-transform: none; }
   #printArea .ans { text-transform: uppercase; }
@@ -54,7 +55,7 @@
       <h1>DUO Academia · Autorização para uso de cartão por terceiros</h1>
       <div class="badge">Preencha, aceite o termo e assine com o dedo (ou mouse). Depois gere o PDF.</div>
     </div>
-    <div class="badge">v1.6.0</div>
+    <div class="badge">v1.6.1</div>
   </header>
 
   <div class="grid">
@@ -124,9 +125,6 @@
           NOME COMPLETO: <span class="mono" id="tt_pre_contratante">____________________________</span><br>
           NÚMERO DO CPF: <span class="mono" id="tt_pre_cpf_contratante">___.___.___-__</span>
         </div>
-        <div class="section" style="font-size:13px">
-          <strong>Parágrafo único.</strong> O TITULAR autoriza a CONTRATADA a utilizar o cartão de crédito e/ou débito dele para realizar a adesão de contrato, produto ou serviço para o CONTRATANTE.
-        </div>
       </div>
 
       <label class="checkbox">
@@ -137,11 +135,13 @@
       <h2 style="margin-top:18px">5) Assinatura (rúbrica no touch)</h2>
       <div class="row">
         <div>
-          <label for="data_assinatura">Data da assinatura</label>
-          <input id="data_assinatura" type="date" />
-          <div class="help">A data é fixada automaticamente para o dia de hoje.</div>
+          <label>Data da assinatura</label>
+          <div id="data_assinatura_view" style="font-weight:700">--/--/----</div>
+          <!-- Campo oculto com o ISO yyyy-mm-dd que vai para a prévia/PDF -->
+          <input id="data_assinatura" type="hidden" />
         </div>
       </div>
+
       <div class="sig-wrap" style="margin-top:10px">
         <div class="row-1 row">
           <div>
@@ -232,40 +232,32 @@
   const U = s => (s || '').toLocaleUpperCase('pt-BR');
   const docId = () => new Date().toISOString().replace(/[-:TZ.]/g,'').slice(0,14);
 
-  // 1) CARREGAR LOGO COMO DATAURL (evita CORS no html2canvas)
   async function loadLogo(){
-    const imgEl = $('#sheet_logo');
-    if (!imgEl) return;
+    const imgEl = $('#sheet_logo'); if(!imgEl) return;
     try{
       const resp = await fetch('logo.png', {cache:'no-store'});
-      if(!resp.ok) throw new Error('logo não encontrada');
+      if(!resp.ok) throw 0;
       const blob = await resp.blob();
-      const reader = new FileReader();
-      reader.onload = ()=> { imgEl.src = reader.result; };
-      reader.readAsDataURL(blob);
-    }catch(e){
-      // fallback: pixel transparente (evita quebrar a renderização)
-      imgEl.src = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8Xw8AAoMBm6o7oDkAAAAASUVORK5CYII=';
-    }
+      const fr = new FileReader();
+      fr.onload = ()=> imgEl.src = fr.result;
+      fr.readAsDataURL(blob);
+    }catch{ imgEl.src='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8Xw8AAoMBm6o7oDkAAAAASUVORK5CYII='; }
   }
 
-  // 2) DATA FIXA = HOJE (preenche input e bloqueia alteração)
+  // DATA: fixa hoje, sem perguntar
   function setTodayBR(){
     const d = new Date();
     const dd = String(d.getDate()).padStart(2,'0');
     const mm = String(d.getMonth()+1).padStart(2,'0');
     const yy = d.getFullYear();
     const iso = `${yy}-${mm}-${dd}`;
-    const input = $('#data_assinatura');
-    input.value = iso;
-    input.min = iso;
-    input.max = iso;
-    input.readOnly = true; // trava edição
-    $('#doc_data').textContent = `${dd}/${mm}/${yy}`;
+    $('#data_assinatura').value = iso;         // hidden
+    $('#data_assinatura_view').textContent = `${dd}/${mm}/${yy}`; // texto visível
+    $('#doc_data').textContent = `${dd}/${mm}/${yy}`;             // cabeçalho da prévia
   }
-  const formatDateBR = iso => { if(!iso) return ''; const [y,m,d] = iso.split('-'); return `${d}/${m}/${y}`; };
+  const formatDateBR = iso => { if(!iso) return ''; const [y,m,d]=iso.split('-'); return `${d}/${m}/${y}`; };
 
-  // 3) MÁSCARAS
+  // Máscaras
   const maskCPF = v => {
     v = onlyDigits(v).slice(0,11);
     return v.replace(/(\d{3})(\d)/,'$1.$2').replace(/(\d{3})(\d)/,'$1.$2').replace(/(\d{3})(\d{1,2})$/,'$1-$2');
@@ -274,25 +266,35 @@
   $('#contratante_cpf').addEventListener('input', e=> e.target.value = maskCPF(e.target.value));
   $('#ultimos4').addEventListener('input', e=> e.target.value = onlyDigits(e.target.value).slice(0,4));
 
-  // 4) ASSINATURA (garante init e desenho)
+  // Canvas assinatura — compatibilidade touch reforçada
   const canvas = $('#signaturePad');
   function resizeCanvasForHiDPI(){
     const ratio = Math.max(window.devicePixelRatio||1,1);
-    const {width: cssW, height: cssH} = canvas.getBoundingClientRect();
-    canvas.width = cssW * ratio; canvas.height = cssH * ratio;
-    const ctx = canvas.getContext('2d'); ctx.setTransform(ratio,0,0,ratio,0,0);
-    ctx.fillStyle = '#ffffff'; ctx.fillRect(0,0,canvas.width,canvas.height); // fundo branco
+    const rect = canvas.getBoundingClientRect();
+    canvas.width = rect.width * ratio;
+    canvas.height = rect.height * ratio;
+    const ctx = canvas.getContext('2d');
+    ctx.setTransform(ratio,0,0,ratio,0,0);
+    ctx.fillStyle = '#ffffff'; ctx.fillRect(0,0,rect.width,rect.height);
   }
   let signaturePad;
+
   function initSignature(){
     resizeCanvasForHiDPI();
     signaturePad = new window.SignaturePad(canvas, {
       backgroundColor: 'rgba(0,0,0,0)',
       penColor: '#111827',
       minWidth: 0.7,
-      maxWidth: 2.2
+      maxWidth: 2.2,
+      throttle: 0
     });
+    // Força o navegador a entregar os eventos de toque ao canvas
+    const prevent = (e)=>{ e.preventDefault(); };
+    canvas.addEventListener('touchstart', prevent, {passive:false});
+    canvas.addEventListener('touchmove', prevent, {passive:false});
+    canvas.addEventListener('touchend', prevent, {passive:false});
   }
+
   window.addEventListener('resize', ()=>{
     const data = signaturePad ? signaturePad.toData() : null;
     resizeCanvasForHiDPI();
@@ -301,9 +303,10 @@
       if (data && data.length) signaturePad.fromData(data);
     }
   });
+
   $('#btnLimpar').addEventListener('click', (e)=>{ e.preventDefault(); if(signaturePad) signaturePad.clear(); renderPreview(); });
 
-  // Recorte das bordas transparentes do PNG da assinatura
+  // Recorte fino da assinatura (elimina “rebarbas”)
   function cropTransparent(dataURL, padding=6, threshold=1){
     return new Promise(resolve=>{
       const img = new Image();
@@ -313,7 +316,7 @@
         const ctx=c.getContext('2d',{willReadFrequently:true}); ctx.drawImage(img,0,0);
         const dt=ctx.getImageData(0,0,w,h).data;
         let top=h,left=w,right=0,bottom=0;
-        for(let y=0;y<h;y++)for(let x=0;x<w;x++){
+        for(let y=0;y<h;y++) for(let x=0;x<w;x++){
           const a=dt[(y*w+x)*4+3]; if(a>threshold){ if(x<left)left=x; if(x>right)right=x; if(y<top)top=y; if(y>bottom)bottom=y; }
         }
         if(right<left||bottom<top){ resolve(''); return; }
@@ -324,7 +327,7 @@
         c2.getContext('2d').drawImage(c,left,top,cw,ch,0,0,cw,ch);
         resolve(c2.toDataURL('image/png'));
       };
-      img.src=dataURL;
+      img.src = dataURL;
     });
   }
 
@@ -337,7 +340,7 @@
       contratante_nome: $('#contratante_nome').value.trim(),
       contratante_cpf: $('#contratante_cpf').value.trim(),
       aceite: $('#aceite').checked,
-      data: $('#data_assinatura').value
+      data: $('#data_assinatura').value // hidden
     };
   }
 
@@ -350,15 +353,12 @@
     $('#pv_bandeira').textContent = U(v.bandeira || '—');
     $('#pv_contratante_nome').textContent = U(v.contratante_nome);
     $('#pv_contratante_cpf').textContent = v.contratante_cpf;
-
-    // preenchimentos no corpo do termo (acima do preview)
     $('#tt_pre_titular').textContent = U(v.titular_nome) || '____________________________';
     $('#tt_pre_cpf_titular').textContent = v.titular_cpf || '___.___.___-__';
     $('#tt_pre_u4').textContent = v.ultimos4 || '____';
     $('#tt_pre_contratante').textContent = U(v.contratante_nome) || '____________________________';
     $('#tt_pre_cpf_contratante').textContent = v.contratante_cpf || '___.___.___-__';
 
-    // assinatura
     if (signaturePad && !signaturePad.isEmpty()) {
       const png = await cropTransparent(signaturePad.toDataURL('image/png'), 6);
       $('#pv_assinatura').src = png;
@@ -394,31 +394,29 @@
     const err = validateForPDF(v);
     if (err){ alert(err); return; }
     $('#doc_id').textContent = docId();
-    await renderPreview(); // garante assinatura e dados atualizados
+    await renderPreview();
     const area = document.getElementById('printArea');
     const canvasImg = await html2canvas(area, { scale: 2, useCORS: true });
     const imgData = canvasImg.toDataURL('image/png');
     const { jsPDF } = window.jspdf;
     const pdf = new jsPDF('p','mm','a4');
     const pageWidth = pdf.internal.pageSize.getWidth();
-    const w = pageWidth - 20;
-    const h = (canvasImg.height * w) / canvasImg.width;
+    const w = pageWidth - 20, h = (canvasImg.height * w) / canvasImg.width;
     pdf.addImage(imgData, 'PNG', 10, 10, w, h, undefined, 'FAST');
     pdf.save(`DUO_Autorizacao_Terceiros_${$('#doc_id').textContent}.pdf`);
   }
 
-  // LISTENERS
-  ['titular_nome','titular_cpf','ultimos4','bandeira','contratante_nome','contratante_cpf','aceite','data_assinatura']
+  // Listeners
+  ['titular_nome','titular_cpf','ultimos4','bandeira','contratante_nome','contratante_cpf','aceite']
     .forEach(id => { const el = document.getElementById(id); if(el){ el.addEventListener('input', renderPreview); el.addEventListener('change', renderPreview); }});
   document.getElementById('btnPDF').addEventListener('click', e=>{ e.preventDefault(); generatePDF(); });
   document.getElementById('btnReset').addEventListener('click', e=>{ e.preventDefault(); if(confirm('Limpar todos os campos?')) location.reload(); });
 
-  // BOOT
+  // Boot: garanto ordem segura p/ layout + touch
   (async function boot(){
     await loadLogo();
     setTodayBR();
-    initSignature();
-    renderPreview();
+    requestAnimationFrame(()=>{ initSignature(); renderPreview(); });
   })();
 </script>
 </body>
