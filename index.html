@@ -243,6 +243,13 @@
   const onlyDigits = v => (v||'').replace(/\D+/g,'');
   const U = s => (s || '').toLocaleUpperCase('pt-BR');
   const docId = () => new Date().toISOString().replace(/[-:TZ.]/g,'').slice(0,14);
+  // Remove acentos e tudo que não for A-Z/0-9, e deixa MAIÚSCULO
+  function slugUpper(s){
+    return (s||'')
+      .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+      .toUpperCase()
+      .replace(/[^A-Z0-9]+/g,'');
+  }
 
   async function loadLogo(){
     const imgEl = $('#sheet_logo'); if(!imgEl) return;
@@ -415,7 +422,16 @@
     const pageWidth = pdf.internal.pageSize.getWidth();
     const w = pageWidth - 20, h = (canvasImg.height * w) / canvasImg.width;
     pdf.addImage(imgData, 'PNG', 10, 10, w, h, undefined, 'FAST');
-    pdf.save(`DUO_Autorizacao_Terceiros_${$('#doc_id').textContent}.pdf`);
+    // Monta nome: TERMOCARTAO_<NOME_CONTRATANTE>_<DDMMAAAA>
+    const [y,m,d] = ($('#data_assinatura').value || '').split('-');
+    const hoje = new Date();
+    const dd = (d || String(hoje.getDate()).padStart(2,'0'));
+    const mm = (m || String(hoje.getMonth()+1).padStart(2,'0'));
+    const yy = (y || String(hoje.getFullYear()));
+    const dataStr = `${dd}${mm}${yy}`;
+    const nome = slugUpper($('#contratante_nome').value);
+    const filename = `TERMOCARTAO_${nome}_${dataStr}.pdf`;
+    pdf.save(filename);
   }
 
   // Listeners
