@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>DUO Academia — Autorização p/ Terceiros (8 etapas) — A4 largura (tight)</title>
+<title>DUO Academia — Autorização p/ Terceiros (8 etapas) — PDF fixo A4</title>
 <style>
   :root{ --bg:#0f172a; --panel:#111827; --muted:#94a3b8; --fg:#e5e7eb; --line:#1f2937; --brand:#3b82f6; --ok:#22c55e; --danger:#ef4444; }
   *{box-sizing:border-box} html,body{height:100%}
@@ -11,6 +11,7 @@
   .wrap{max-width:980px;margin:0 auto;padding:24px}
   header{display:flex;gap:16px;align-items:center;justify-content:space-between;padding:16px 0 24px;border-bottom:1px solid var(--line)}
   h1{font-size:20px;margin:0;font-weight:700}.badge{font-size:12px;color:var(--muted)}
+
   .card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:18px;box-shadow:0 10px 30px rgba(0,0,0,.25)}
   .card h2{font-size:18px;margin:0 0 12px}
   .row-1{display:grid;grid-template-columns:1fr;gap:12px}
@@ -21,9 +22,11 @@
   .btns{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px;justify-content:space-between}
   .btn{appearance:none;border:1px solid #2a3448;background:#162136;color:#dbeafe;padding:10px 14px;border-radius:10px;cursor:pointer;font-size:14px}
   .btn.ok{background:var(--ok);border-color:var(--ok);color:#001a07}.btn.danger{background:var(--danger);border-color:var(--danger);color:#fff}
+
   .terms{border:1px dashed #334155;border-radius:12px;padding:12px;background:#0b1220;max-height:220px;overflow:auto}
   .sig-wrap{background:#0b1220;border:1px solid #1c2536;border-radius:12px;padding:12px}
   .sig-wrap canvas{width:100%;height:220px;background:#fff;border-radius:8px;border:1px solid #334155;display:block;touch-action:none;cursor:crosshair}
+
   .steps{display:flex;gap:6px;justify-content:center;margin:10px 0 16px}
   .dot{width:8px;height:8px;border-radius:999px;background:#1f2937;opacity:.6}
   .dot.active{background:var(--brand);opacity:1}
@@ -31,38 +34,43 @@
   .titlecenter{font-size:14px;text-align:center;margin-bottom:8px;color:var(--muted)}
   footer{margin-top:20px;font-size:12px;color:var(--muted);text-align:center}
 
-  /* ===== Folha da prévia ===== */
-  .sheet{
-    background:#fff;color:#111;width:794px;min-height:1123px;
-    padding:28mm 20mm;border:1px solid #ddd;border-radius:6px;
-    box-shadow:0 4px 30px rgba(0,0,0,.15); margin-top:10px
+  /* ===== Área fixa do PDF (OFFSCREEN) =====
+     - Tamanho A4 “pixelizado” para html2canvas: 794x1123
+     - Fica fora da viewport, não interfere no layout/mobile
+  */
+  #pdfRoot{
+    position:fixed; left:-10000px; top:0; width:0; height:0; overflow:hidden; pointer-events:none;
   }
-  /* Durante a exportação: menos padding e sem sombras/bordas arredondadas */
-  .sheet.pdf-tight{
-    /* width deixa o browser calcular; foco é reduzir padding */
-    padding:18mm 10mm !important;
-    border-radius:0 !important;
-    box-shadow:none !important;
+  #printArea{
+    background:#fff; color:#111; width:794px; min-height:1123px;
+    padding:28mm 16mm;  /* padding confortável; ajustável */
+    border:1px solid #ddd; border-radius:6px;
   }
-
-  .sheet h3{margin:0 0 8px}.sheet small{color:#555}.sheet .section{margin-top:14px}
-  .sheet table{width:100%;border-collapse:collapse;font-size:13px}.sheet th,.sheet td{border:1px solid #ccc;padding:6px 8px;text-align:left}
-  .sheet .sign-area{display:flex;gap:16px;align-items:flex-end;margin-top:24px}.sheet .sign-box{flex:1}
-  .sheet .sign-img{max-width:100%;max-height:130px;border:none;background:transparent;display:block;margin:0 auto;object-fit:contain}
-  .sheet .line{height:1px;background:#ccc;margin:6px 0}
-  .sheet .brand{display:flex;align-items:center;gap:10px}.sheet .brand img.logo{height:38px;width:auto;display:block}
+  #printArea h3{margin:0 0 8px}
+  #printArea small{color:#555}
+  #printArea .section{margin-top:14px}
+  #printArea table{width:100%;border-collapse:collapse;font-size:13px}
+  #printArea th,#printArea td{border:1px solid #ccc;padding:6px 8px;text-align:left}
+  #printArea .sign-area{display:flex;gap:16px;align-items:flex-end;margin-top:24px}
+  #printArea .sign-box{flex:1}
+  #printArea .sign-img{max-width:100%;max-height:130px;border:none;background:transparent;display:block;margin:0 auto;object-fit:contain}
+  #printArea .line{height:1px;background:#ccc;margin:6px 0}
+  #printArea .brand{display:flex;align-items:center;gap:10px}
+  #printArea .brand img.logo{height:38px;width:auto;display:block}
 
   /* MAIÚSCULO */
   input[type="text"], input:not([type]), textarea { text-transform: uppercase; }
   input[type="date"], input[type="number"] { text-transform: none; }
-  #printArea .ans { text-transform: uppercase; }
-  select:required:invalid{color:var(--muted)}
 
   /* Legibilidade no PDF */
-  #printArea, #printArea *{ font-family: Arial, Helvetica, sans-serif; font-kerning: none; letter-spacing:.2px; word-spacing:.4px; line-height:1.25; -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
+  #printArea, #printArea *{
+    font-family: Arial, Helvetica, sans-serif;
+    font-kerning: none; letter-spacing:.2px; word-spacing:.4px; line-height:1.25;
+    -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility;
+  }
   #printArea table th, #printArea table td{ letter-spacing:.3px; }
 
-  /* Checkbox aceitar branco/verde (iOS OK) */
+  /* Checkbox aceitar — branco/verde (iOS OK) */
   #aceite{
     -webkit-appearance:none; appearance:none; width:22px; height:22px; border:2px solid #fff; border-radius:6px;
     background:transparent; display:inline-grid; place-content:center; outline:2px solid #fff; outline-offset:2px; cursor:pointer;
@@ -72,7 +80,11 @@
   #aceite:checked{ background:#22c55e; border-color:#22c55e; outline-color:#22c55e; }
   #aceite:checked::after{ transform:scale(1) rotate(45deg); }
 
-  @media(max-width:760px){ input,select,textarea{font-size:16px} .sig-wrap canvas{height:180px} .sheet{width:100%; padding:20px} }
+  /* Mobile: inputs grandes; NADA mexe no #printArea (offscreen e fixo) */
+  @media(max-width:760px){
+    input,select,textarea{font-size:16px}
+    .sig-wrap canvas{height:180px}
+  }
 </style>
 </head>
 <body>
@@ -80,9 +92,9 @@
   <header>
     <div>
       <h1>DUO Academia · Autorização para uso de cartão por terceiros</h1>
-      <div class="badge">Responda cada etapa. Ao final, veja a prévia e gere o PDF.</div>
+      <div class="badge">Responda cada etapa. Ao final, gere o PDF.</div>
     </div>
-    <div class="badge">v3.5 (8 etapas)</div>
+    <div class="badge">v3.6 (8 etapas)</div>
   </header>
 
   <div class="steps" id="steps"></div>
@@ -199,87 +211,89 @@
     </div>
   </section>
 
-  <!-- 8) Prévia + PDF -->
+  <!-- 8) Somente o botão Gerar PDF -->
   <section class="screen" id="s7">
     <div class="card">
-      <h2>8) Pré-visualização e PDF</h2>
-      <div class="help">A prévia abaixo já está com seus dados e sua assinatura.</div>
-
-      <div id="printArea" class="sheet" aria-label="Área imprimível">
-        <div style="display:flex;justify-content:space-between;align-items:flex-start">
-          <div class="brand">
-            <img id="sheet_logo" class="logo" alt="Logo DUO" />
-            <div>
-              <h3 style="margin:0 0 2px;">DUO ACADEMIA</h3>
-              <small style="font-size:6px;line-height:.9;display:block;margin-top:0">
-                Av. Simoa Gomes, 726 – Heliópolis · R. Dom José, 187 – Santo Antônio<br>
-                (87) 9 9666-0021 | (87) 9 9934-1230 · coordenacaoduoacademia@gmail.com
-              </small>
-            </div>
-          </div>
-          <div style="text-align:right">
-            <div style="font-size:12px;color:#444">Código: <span id="doc_id"></span></div>
-            <div style="font-size:12px;color:#444">Data: <span id="doc_data"></span></div>
-          </div>
-        </div>
-        <div class="line"></div>
-
-        <div class="section">
-          <table>
-            <tr><th colspan="2">DADOS DO TITULAR DO CARTÃO</th></tr>
-            <tr><td>Nome</td><td id="pv_titular_nome" class="ans"></td></tr>
-            <tr><td>CPF</td><td id="pv_titular_cpf"></td></tr>
-          </table>
-        </div>
-
-        <div class="section">
-          <table>
-            <tr><th colspan="2">DADOS DO CARTÃO UTILIZADO</th></tr>
-            <tr><td>Últimos 4 dígitos</td><td id="pv_u4"></td></tr>
-            <tr><td>Bandeira</td><td id="pv_bandeira" class="ans"></td></tr>
-          </table>
-        </div>
-
-        <div class="section">
-          <table>
-            <tr><th colspan="2">DADOS DO CONTRATANTE DO PLANO</th></tr>
-            <tr><td>Nome</td><td id="pv_contratante_nome" class="ans"></td></tr>
-            <tr><td>CPF</td><td id="pv_contratante_cpf"></td></tr>
-          </table>
-        </div>
-
-        <div class="section" id="paragrafo-unico">
-          <table>
-            <tr><th>PARÁGRAFO ÚNICO</th></tr>
-            <tr>
-              <td style="font-size:12px; line-height:1.35; text-align:justify">
-                O TITULAR autoriza a CONTRATADA a utilizar o cartão de crédito e/ou débito dele
-                para realizar a adesão de algum contrato, produto ou serviço para o CONTRATANTE,
-                assumindo responsabilidade em caso de eventuais situações interpessoais entre
-                TITULAR e CONTRATANTE.
-              </td>
-            </tr>
-          </table>
-        </div>
-
-        <div class="section sign-area">
-          <div class="sign-box">
-            <div style="margin-bottom:6px">Assinante: <span id="pv_quem">Titular do Cartão</span></div>
-            <img id="pv_assinatura" class="sign-img" alt="Assinatura" />
-            <div class="line"></div>
-            <div style="font-size:12px;color:#555">Assinatura (rúbrica)</div>
-          </div>
-        </div>
-      </div>
-
+      <h2>8) Gerar PDF</h2>
+      <div class="help">Revise seus dados nas etapas anteriores. Ao tocar em “Gerar PDF”, o documento será exportado em A4.</div>
       <div class="btns" style="margin-top:12px">
         <button class="btn" id="p7">Voltar</button>
         <button class="btn ok" id="btnPDF" disabled>Gerar PDF</button>
         <button class="btn danger" id="btnReset">Resetar</button>
       </div>
-      <footer>Dica: você também pode usar <strong>Imprimir &gt; Salvar como PDF</strong>.</footer>
+      <footer>Dica: também funciona via <strong>Imprimir &gt; Salvar como PDF</strong>.</footer>
     </div>
   </section>
+</div>
+
+<!-- ====== Área OFFSCREEN usada só para exportar ====== -->
+<div id="pdfRoot" aria-hidden="true">
+  <div id="printArea">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start">
+      <div class="brand">
+        <img id="sheet_logo" class="logo" alt="Logo DUO" />
+        <div>
+          <h3 style="margin:0 0 2px;">DUO ACADEMIA</h3>
+          <small style="font-size:6px;line-height:.9;display:block;margin-top:0">
+            Av. Simoa Gomes, 726 – Heliópolis · R. Dom José, 187 – Santo Antônio<br>
+            (87) 9 9666-0021 | (87) 9 9934-1230 · coordenacaoduoacademia@gmail.com
+          </small>
+        </div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-size:12px;color:#444">Código: <span id="doc_id"></span></div>
+        <div style="font-size:12px;color:#444">Data: <span id="doc_data"></span></div>
+      </div>
+    </div>
+    <div class="line" style="height:1px;background:#ccc;margin:6px 0"></div>
+
+    <div class="section">
+      <table>
+        <tr><th colspan="2">DADOS DO TITULAR DO CARTÃO</th></tr>
+        <tr><td>Nome</td><td id="pv_titular_nome" class="ans"></td></tr>
+        <tr><td>CPF</td><td id="pv_titular_cpf"></td></tr>
+      </table>
+    </div>
+
+    <div class="section">
+      <table>
+        <tr><th colspan="2">DADOS DO CARTÃO UTILIZADO</th></tr>
+        <tr><td>Últimos 4 dígitos</td><td id="pv_u4"></td></tr>
+        <tr><td>Bandeira</td><td id="pv_bandeira" class="ans"></td></tr>
+      </table>
+    </div>
+
+    <div class="section">
+      <table>
+        <tr><th colspan="2">DADOS DO CONTRATANTE DO PLANO</th></tr>
+        <tr><td>Nome</td><td id="pv_contratante_nome" class="ans"></td></tr>
+        <tr><td>CPF</td><td id="pv_contratante_cpf"></td></tr>
+      </table>
+    </div>
+
+    <div class="section" id="paragrafo-unico">
+      <table>
+        <tr><th>PARÁGRAFO ÚNICO</th></tr>
+        <tr>
+          <td style="font-size:12px; line-height:1.35; text-align:justify">
+            O TITULAR autoriza a CONTRATADA a utilizar o cartão de crédito e/ou débito dele
+            para realizar a adesão de algum contrato, produto ou serviço para o CONTRATANTE,
+            assumindo responsabilidade em caso de eventuais situações interpessoais entre
+            TITULAR e CONTRATANTE.
+          </td>
+        </tr>
+      </table>
+    </div>
+
+    <div class="section sign-area">
+      <div class="sign-box">
+        <div style="margin-bottom:6px">Assinante: <span id="pv_quem">Titular do Cartão</span></div>
+        <img id="pv_assinatura" class="sign-img" alt="Assinatura" />
+        <div class="line"></div>
+        <div style="font-size:12px;color:#555">Assinatura (rúbrica)</div>
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- libs -->
@@ -333,10 +347,10 @@
     const yy = d.getFullYear();
     const iso = `${yy}-${mm}-${dd}`;
     $('#data_assinatura').value = iso;
-    $('#data_assinatura_view').textContent = `${dd}/${mm}/${yy}`;
     $('#doc_data').textContent = `${dd}/${mm}/${yy}`;
+    $('#data_assinatura_view').textContent = `${dd}/${mm}/${yy}`;
   }
-  const formatDateBR = iso => { if(!iso) return ''; const [y,m,d]=iso.split('-'); return `${d}/${m}/${y}`; };
+  const formatBR = iso => { if(!iso) return ''; const [y,m,d]=iso.split('-'); return `${d}/${m}/${y}`; };
 
   // Máscaras
   const maskCPF = v => { v = onlyDigits(v).slice(0,11); return v.replace(/(\d{3})(\d)/,'$1.$2').replace(/(\d{3})(\d)/,'$1.$2').replace(/(\d{3})(\d{1,2})$/,'$1-$2'); };
@@ -365,8 +379,7 @@
   function initSignature(){
     signaturePad = new window.SignaturePad(canvas, {
       backgroundColor: 'rgba(0,0,0,0)',
-      penColor: '#111827',
-      minWidth: 0.7, maxWidth: 2.2, throttle: 0,
+      penColor: '#111827', minWidth: 0.7, maxWidth: 2.2, throttle: 0,
       onEnd: ()=>{ renderPreview(); updatePDFButton(); }
     });
     const prevent = (e)=>{ e.preventDefault(); };
@@ -386,7 +399,7 @@
     document.getElementById('pv_assinatura').src=''; updatePDFButton(); renderPreview();
   });
 
-  // Recorte fino
+  // Recorte fino da assinatura
   function cropTransparent(dataURL, padding=6, threshold=1){
     return new Promise(resolve=>{
       const img = new Image();
@@ -426,19 +439,19 @@
 
   async function renderPreview(){
     const v = getValues();
-    document.getElementById('doc_data').textContent = formatDateBR(v.data);
-    document.getElementById('pv_titular_nome').textContent = U(v.titular_nome);
-    document.getElementById('pv_titular_cpf').textContent = v.titular_cpf;
-    document.getElementById('pv_u4').textContent = v.ultimos4;
-    document.getElementById('pv_bandeira').textContent = U(v.bandeira || '—');
-    document.getElementById('pv_contratante_nome').textContent = U(v.contratante_nome);
-    document.getElementById('pv_contratante_cpf').textContent = v.contratante_cpf;
-    document.getElementById('tt_pre_titular').textContent = U(v.titular_nome) || '____________________________';
-    document.getElementById('tt_pre_cpf_titular').textContent = v.titular_cpf || '___.___.___-__';
-    document.getElementById('tt_pre_u4').textContent = v.ultimos4 || '____';
-    document.getElementById('tt_pre_contratante').textContent = U(v.contratante_nome) || '____________________________';
-    document.getElementById('tt_pre_cpf_contratante').textContent = v.contratante_cpf || '___.___.___-__';
+    // Cabeçalho
+    document.getElementById('doc_id').textContent   = docId();
+    document.getElementById('doc_data').textContent = formatBR(v.data);
 
+    // Campos
+    document.getElementById('pv_titular_nome').textContent = U(v.titular_nome);
+    document.getElementById('pv_titular_cpf').textContent  = v.titular_cpf;
+    document.getElementById('pv_u4').textContent           = v.ultimos4;
+    document.getElementById('pv_bandeira').textContent     = U(v.bandeira || '—');
+    document.getElementById('pv_contratante_nome').textContent = U(v.contratante_nome);
+    document.getElementById('pv_contratante_cpf').textContent  = v.contratante_cpf;
+
+    // Assinatura
     if (signaturePad && !signaturePad.isEmpty()) {
       const png = await cropTransparent(signaturePad.toDataURL('image/png'), 6);
       document.getElementById('pv_assinatura').src = png;
@@ -453,7 +466,7 @@
     if (/^(\d)\1{10}$/.test(cpf)) return false;
     let s=0,r; for(let i=1;i<=9;i++) s+=parseInt(cpf.substring(i-1,i))*(11-i);
     r=(s*10)%11; if(r===10||r===11) r=0; if(r!==parseInt(cpf.substring(9,10))) return false;
-    s=0; for(let i=1;i<=10;i++) s+=parseInt(cpf.substring(i-1,i))*(12-i);
+    s=0; for(let i=1;i<=10)i++ s+=parseInt(cpf.substring(i-1,i))*(12-i);
     r=(s*10)%11; if(r===10||r===11) r=0; return r===parseInt(cpf.substring(10,11));
   }
 
@@ -478,34 +491,16 @@
     btn.disabled = !(aceiteOk && assinOk && finalActive);
   }
 
-  function pushSignatureToPrintArea(){
-    const img = document.getElementById('pv_assinatura');
-    if (img && signaturePad && !signaturePad.isEmpty()){
-      img.src = signaturePad.toDataURL('image/png');
-      img.style.display = 'block';
-    }
-  }
-
-  // ======== A4 FIT (prioriza largura) + padding reduzido na hora H ========
+  // ======== Exporta A4 (prioriza largura) ========
   async function generatePDF(){
     const v = getValues();
     const err = validateForPDF(v);
     if (err){ alert(err); return; }
-    document.getElementById('doc_id').textContent = docId();
-    renderPreview();
-    pushSignatureToPrintArea();
+
+    await renderPreview(); // garante #printArea atualizado
 
     const area = document.getElementById('printArea');
-
-    // Reduz o padding da folha apenas para a captura
-    area.classList.add('pdf-tight');
-    // garante reflow antes da captura
-    await new Promise(r=>requestAnimationFrame(r));
-
     const canvasImg = await html2canvas(area, { scale: 2, useCORS: true, backgroundColor:'#ffffff' });
-    // remove a classe para não afetar a UI depois
-    area.classList.remove('pdf-tight');
-
     const imgWpx = canvasImg.width, imgHpx = canvasImg.height;
 
     const { jsPDF } = window.jspdf;
@@ -513,13 +508,12 @@
 
     const pageW = pdf.internal.pageSize.getWidth();
     const pageH = pdf.internal.pageSize.getHeight();
-    const margin = 6; // mm (mais “cheio”)
+    const margin = 6; // mm
     const maxW = pageW - margin*2;
     const maxH = pageH - margin*2;
 
-    // Fit pela LARGURA; se estourar a altura, ajusta pela altura
-    let scale = maxW / imgWpx;
-    if (imgHpx * scale > maxH) scale = maxH / imgHpx;
+    let scale = maxW / imgWpx;          // cabe pela largura
+    if (imgHpx * scale > maxH) scale = maxH / imgHpx; // fallback se estourar altura
 
     const imgWmm = imgWpx * scale;
     const imgHmm = imgHpx * scale;
@@ -550,7 +544,7 @@
   document.getElementById('n6').onclick = ()=>{
     if (!document.getElementById('aceite').checked){ alert('Você precisa aceitar o termo para continuar.'); return; }
     if (!signaturePad || signaturePad.isEmpty()){ alert('Por favor, assine para continuar.'); return; }
-    renderPreview(); pushSignatureToPrintArea(); go(7);
+    go(7);
   };
 
   document.getElementById('p1').onclick = ()=> go(0);
