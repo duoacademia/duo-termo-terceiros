@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>DUO Academia — Autorização p/ Terceiros (8 etapas) — A4 largura</title>
+<title>DUO Academia — Autorização p/ Terceiros (8 etapas) — A4 largura (tight)</title>
 <style>
   :root{ --bg:#0f172a; --panel:#111827; --muted:#94a3b8; --fg:#e5e7eb; --line:#1f2937; --brand:#3b82f6; --ok:#22c55e; --danger:#ef4444; }
   *{box-sizing:border-box} html,body{height:100%}
@@ -32,7 +32,19 @@
   footer{margin-top:20px;font-size:12px;color:var(--muted);text-align:center}
 
   /* ===== Folha da prévia ===== */
-  .sheet{background:#fff;color:#111;width:794px;min-height:1123px;padding:28mm 20mm;border:1px solid #ddd;border-radius:6px;box-shadow:0 4px 30px rgba(0,0,0,.15); margin-top:10px}
+  .sheet{
+    background:#fff;color:#111;width:794px;min-height:1123px;
+    padding:28mm 20mm;border:1px solid #ddd;border-radius:6px;
+    box-shadow:0 4px 30px rgba(0,0,0,.15); margin-top:10px
+  }
+  /* Durante a exportação: menos padding e sem sombras/bordas arredondadas */
+  .sheet.pdf-tight{
+    /* width deixa o browser calcular; foco é reduzir padding */
+    padding:18mm 10mm !important;
+    border-radius:0 !important;
+    box-shadow:none !important;
+  }
+
   .sheet h3{margin:0 0 8px}.sheet small{color:#555}.sheet .section{margin-top:14px}
   .sheet table{width:100%;border-collapse:collapse;font-size:13px}.sheet th,.sheet td{border:1px solid #ccc;padding:6px 8px;text-align:left}
   .sheet .sign-area{display:flex;gap:16px;align-items:flex-end;margin-top:24px}.sheet .sign-box{flex:1}
@@ -50,7 +62,7 @@
   #printArea, #printArea *{ font-family: Arial, Helvetica, sans-serif; font-kerning: none; letter-spacing:.2px; word-spacing:.4px; line-height:1.25; -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
   #printArea table th, #printArea table td{ letter-spacing:.3px; }
 
-  /* Checkbox aceitar — branco/verde */
+  /* Checkbox aceitar branco/verde (iOS OK) */
   #aceite{
     -webkit-appearance:none; appearance:none; width:22px; height:22px; border:2px solid #fff; border-radius:6px;
     background:transparent; display:inline-grid; place-content:center; outline:2px solid #fff; outline-offset:2px; cursor:pointer;
@@ -70,7 +82,7 @@
       <h1>DUO Academia · Autorização para uso de cartão por terceiros</h1>
       <div class="badge">Responda cada etapa. Ao final, veja a prévia e gere o PDF.</div>
     </div>
-    <div class="badge">v3.4 (8 etapas)</div>
+    <div class="badge">v3.5 (8 etapas)</div>
   </header>
 
   <div class="steps" id="steps"></div>
@@ -280,34 +292,21 @@
   const onlyDigits = v => (v||'').replace(/\D+/g,'');
   const U = s => (s || '').toLocaleUpperCase('pt-BR');
   const docId = () => new Date().toISOString().replace(/[-:TZ.]/g,'').slice(0,14);
-
-  function slugUpper(s){
-    return (s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase().replace(/[^A-Z0-9]+/g,'');
-  }
+  const slugUpper = s => (s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase().replace(/[^A-Z0-9]+/g,'');
 
   // Steps
   let step = 0, total = 8;
   const titStep = document.getElementById('titStep');
-  function mountDots(){
-    const el = document.getElementById('steps'); el.innerHTML='';
-    for(let i=0;i<total;i++){
-      const d=document.createElement('div'); d.className='dot' + (i===0?' active':'');
-      d.id='d'+i; el.appendChild(d);
-    }
-  }
+  function mountDots(){ const el = document.getElementById('steps'); el.innerHTML=''; for(let i=0;i<total;i++){ const d=document.createElement('div'); d.className='dot'+(i===0?' active':''); d.id='d'+i; el.appendChild(d);} }
   function go(i){
     step = Math.max(0, Math.min(total-1, i));
-    for(let k=0;k<total;k++){ document.getElementById('s'+k).classList.toggle('active', k===step); }
-    for(let k=0;k<total;k++){ document.getElementById('d'+k).classList.toggle('active', k<=step); }
+    for(let k=0;k<total;k++){ document.getElementById('s'+k).classList.toggle('active', k===step); document.getElementById('d'+k).classList.toggle('active', k<=step); }
     titStep.textContent = `Etapa ${step+1} de ${total}`;
     if(step === 6){
       requestAnimationFrame(()=>{
         const data = signaturePad ? signaturePad.toData() : null;
         resizeCanvasForHiDPI();
-        if (signaturePad){
-          signaturePad.clear();
-          if (data && data.length) signaturePad.fromData(data);
-        }
+        if (signaturePad){ signaturePad.clear(); if (data && data.length) signaturePad.fromData(data); }
       });
     }
     updatePDFButton();
@@ -326,7 +325,7 @@
     }catch{ imgEl.src='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8Xw8AAoMBm6o7oDkAAAAASUVORK5CYII='; }
   }
 
-  // Data atual
+  // Data
   function setTodayBR(){
     const d = new Date();
     const dd = String(d.getDate()).padStart(2,'0');
@@ -340,10 +339,7 @@
   const formatDateBR = iso => { if(!iso) return ''; const [y,m,d]=iso.split('-'); return `${d}/${m}/${y}`; };
 
   // Máscaras
-  const maskCPF = v => {
-    v = onlyDigits(v).slice(0,11);
-    return v.replace(/(\d{3})(\d)/,'$1.$2').replace(/(\d{3})(\d)/,'$1.$2').replace(/(\d{3})(\d{1,2})$/,'$1-$2');
-  };
+  const maskCPF = v => { v = onlyDigits(v).slice(0,11); return v.replace(/(\d{3})(\d)/,'$1.$2').replace(/(\d{3})(\d)/,'$1.$2').replace(/(\d{3})(\d{1,2})$/,'$1-$2'); };
   document.addEventListener('input', e=>{
     if(e.target.id==='titular_cpf' || e.target.id==='contratante_cpf') e.target.value = maskCPF(e.target.value);
     if(e.target.id==='ultimos4') e.target.value = onlyDigits(e.target.value).slice(0,4);
@@ -363,8 +359,7 @@
     const ctx = canvas.getContext('2d');
     ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
     ctx.clearRect(0, 0, rect.width, rect.height);
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(0, 0, rect.width, rect.height);
+    ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, rect.width, rect.height);
   }
   let signaturePad;
   function initSignature(){
@@ -383,10 +378,7 @@
     if(document.getElementById('s6').classList.contains('active')){
       const data = signaturePad ? signaturePad.toData() : null;
       resizeCanvasForHiDPI();
-      if(signaturePad){
-        signaturePad.clear();
-        if (data && data.length) signaturePad.fromData(data);
-      }
+      if(signaturePad){ signaturePad.clear(); if (data && data.length) signaturePad.fromData(data); }
     }
   });
   document.getElementById('btnLimpar')?.addEventListener('click', (e)=>{
@@ -494,7 +486,7 @@
     }
   }
 
-  // ======== A4 FIT (prioriza largura) ========
+  // ======== A4 FIT (prioriza largura) + padding reduzido na hora H ========
   async function generatePDF(){
     const v = getValues();
     const err = validateForPDF(v);
@@ -504,7 +496,16 @@
     pushSignatureToPrintArea();
 
     const area = document.getElementById('printArea');
+
+    // Reduz o padding da folha apenas para a captura
+    area.classList.add('pdf-tight');
+    // garante reflow antes da captura
+    await new Promise(r=>requestAnimationFrame(r));
+
     const canvasImg = await html2canvas(area, { scale: 2, useCORS: true, backgroundColor:'#ffffff' });
+    // remove a classe para não afetar a UI depois
+    area.classList.remove('pdf-tight');
+
     const imgWpx = canvasImg.width, imgHpx = canvasImg.height;
 
     const { jsPDF } = window.jspdf;
@@ -512,18 +513,16 @@
 
     const pageW = pdf.internal.pageSize.getWidth();
     const pageH = pdf.internal.pageSize.getHeight();
-    const margin = 2; // mm
+    const margin = 6; // mm (mais “cheio”)
     const maxW = pageW - margin*2;
     const maxH = pageH - margin*2;
 
-    // Fit pela LARGURA primeiro; se estourar a altura, então ajusta pela altura.
+    // Fit pela LARGURA; se estourar a altura, ajusta pela altura
     let scale = maxW / imgWpx;
-    if (imgHpx * scale > maxH) {
-      scale = maxH / imgHpx; // fallback
-    }
+    if (imgHpx * scale > maxH) scale = maxH / imgHpx;
+
     const imgWmm = imgWpx * scale;
     const imgHmm = imgHpx * scale;
-
     const x = (pageW - imgWmm) / 2;
     const y = (pageH - imgHmm) / 2;
 
@@ -570,10 +569,7 @@
     mountDots();
     await loadLogo();
     setTodayBR();
-    requestAnimationFrame(()=>{
-      initSignature();
-      go(0);
-    });
+    requestAnimationFrame(()=>{ initSignature(); go(0); });
   })();
 </script>
 </body>
